@@ -93,19 +93,27 @@ public class Command {
 	public void parseCommand(String command) throws ParseException {
 		JSONParser parser = new JSONParser();
 		JSONObject jsonCommand = (JSONObject) parser.parse(command);
-		switch(jsonCommand.get("command")) {
+		switch(jsonCommand.get("command").toString()) {
 		case "PUBLISH":
-			publish(command); // call publish function
+			publish(jsonCommand); // call publish function
+			break;
 		case "REMOVE":
-			remove(command);
+			remove(jsonCommand);
+			break;
 		case "SHARE":
-			share(command);
+			share(jsonCommand);
+			break;
 		case "QUERY":
-			query(command);
+			query(jsonCommand);
+			break;
 		case "FETCH":
-			fetch(command);
+			fetch(jsonCommand);
+			break;
 		case "EXCHANGE":
-			exchange(command);
+			exchange(jsonCommand);
+			break;
+		default:
+			break;
 		}
 	}
 	public void publish(JSONObject cmd){
