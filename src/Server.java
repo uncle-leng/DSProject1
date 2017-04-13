@@ -47,7 +47,7 @@ public class Server {
 			// Output Stream
 		    DataOutputStream output = new DataOutputStream(clientSocket.
 		    		getOutputStream());
-		    System.out.println("CLIENT: "+input.readUTF());
+		    System.out.println(input.readUTF());
 		    output.writeUTF("Server: Hi Client "+counter+" !!!");
 		} catch (IOException e) {
 			e.printStackTrace();

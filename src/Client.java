@@ -1,5 +1,7 @@
 
 import java.io.DataInputStream;
+import org.apache.commons.cli.*;
+import org.json.simple.*;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
@@ -10,6 +12,8 @@ public class Client {
 	// IP and port
 	private static String ip = "localhost";
 	private static int port = 3000;
+	private static CommandLineHandle commandLine = new CommandLineHandle();
+	private static Options options = commandLine.getOptions();
 	
 	public static void main(String[] args) {
 		try(Socket socket = new Socket(ip, port)){
@@ -18,8 +22,9 @@ public class Client {
 					getInputStream());
 		    DataOutputStream output = new DataOutputStream(socket.
 		    		getOutputStream());
+		    String outCommand = commandLine.parse(args, options);
 		    
-	    	output.writeUTF("I want to connect!");
+	    	output.writeUTF(outCommand);
 	    	output.flush();
 	    	
 		    while(true){

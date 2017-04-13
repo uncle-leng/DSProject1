@@ -27,7 +27,7 @@ import org.json.simple.parser.ParseException;
 ======`-.____`-.___\_____/___.-`____.-'====== 
                    `=---=' 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
-         ·ð×æ±£ÓÓ       ÓÀÎÞBUG 
+         ï¿½ï¿½ï¿½æ±£ï¿½ï¿½       ï¿½ï¿½ï¿½ï¿½BUG 
 */  
 public class Command {
 	public String command;
@@ -88,8 +88,26 @@ public class Command {
 	/**
 	 * this publish method takes a json as input
 	 * and write a json file on server.
+	 * @throws ParseException 
 	 * **/
-	
+	public void parseCommand(String command) throws ParseException {
+		JSONParser parser = new JSONParser();
+		JSONObject jsonCommand = (JSONObject) parser.parse(command);
+		switch(jsonCommand.get("command")) {
+		case "PUBLISH":
+			publish(command); // call publish function
+		case "REMOVE":
+			remove(command);
+		case "SHARE":
+			share(command);
+		case "QUERY":
+			query(command);
+		case "FETCH":
+			fetch(command);
+		case "EXCHANGE":
+			exchange(command);
+		}
+	}
 	public void publish(JSONObject cmd){
 		String resourceStr=cmd.get("resource").toJSONString();
 		String name=cmd.get("name").toString();
