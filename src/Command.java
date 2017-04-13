@@ -1,3 +1,5 @@
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 
 import org.json.simple.JSONArray;
@@ -83,5 +85,21 @@ public class Command {
 		return (JSONObject)parser.parse(jsonStr);
 	}
 	
+	/**
+	 * this publish method takes a json as input
+	 * and write a json file on server.
+	 * **/
+	
+	public void publish(JSONObject cmd){
+		String resourceStr=cmd.get("resource").toJSONString();
+		String name=cmd.get("name").toString();
+		File resource=new File(name+".json");
+		FileOutputStream out = new FileOutputStream(resource);
+		byte[] bytes=new byte[512];
+		bytes=resourceStr.getBytes();
+		int length=resourceStr.length();
+		out.write(bytes, 0, length);
+		out.close();
+	}
 
 }
