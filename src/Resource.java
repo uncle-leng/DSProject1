@@ -1,18 +1,26 @@
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.*;
-
+import java.util.*;
 
 public class Resource {
 	public String name;
 	public String description;
-	public String[] tags;
+	//public String[] tags;
+	public ArrayList<String> tags;
 	public String uri;
 	public String channel;
 	public String owner;
 	public String ezserver;
 	
 	public Resource() {
+		this.name = "";
+		this.description = "";
+		this.tags = new ArrayList();
+		this.uri = "";
+		this.channel = "";
+		this.owner = "";
+		this.ezserver = null;
 	}
 	
 	public Resource(Resource obj) {
@@ -24,6 +32,7 @@ public class Resource {
 		this.owner = obj.owner;
 		this.ezserver = obj.ezserver;
 	}
+	/*
 	
 	public void setName(String name) {
 		this.name = name;
@@ -33,7 +42,7 @@ public class Resource {
 		this.description = description;
 	}
 	
-	public void setTags(String[] tags) {
+	public void setTags(ArrayList<String> tags) {
 		this.tags = tags;
 	}
 	
@@ -52,14 +61,52 @@ public class Resource {
 	public void setEzerver(String ezserver) {
 		this.ezserver = ezserver;
 	}
-	
-	public String toString(JSONObject jsonObj) {
-		return jsonObj.toString();
+	*/
+	public void setter(String key, String value) {
+		switch (key) {
+		case "name" : 
+			this.name = value;
+			break;
+		case "description" :
+			this.description = value;
+			break;
+		case "uri" :
+			this.uri = value;
+			break;
+		case "channel" : 
+			this.channel = value;
+			break;
+		case "owner" :
+			this.owner = value;
+			break;
+		case "ezserver" :
+			this.ezserver = value;
+			break;
+		case "tags" :
+			String[] tagArray = value.split(",");
+			ArrayList<String> tagArrayList= new ArrayList<String>();
+			Collections.addAll(tagArrayList, tagArray);
+			this.tags = tagArrayList;
+			break;
+		default :
+			break;
+			
+		}
+	}
+	/*
+	public void setter(String key, ArrayList<String> value) {
+		if (key.equals("tags")) {
+			this.tags = value;
+		}
+	}
+	*/
+	public String toString(Resource obj) {
+		return obj.toString();
 	}
 	
-	public JSONObject toJSON(String jsonString) throws ParseException {
+	public JSONObject toJSON(Resource obj) throws ParseException {
 		JSONParser parser = new JSONParser();
-		return (JSONObject)parser.parse(jsonString);
+		return (JSONObject)parser.parse(obj.toString());
 	}
 	
 	

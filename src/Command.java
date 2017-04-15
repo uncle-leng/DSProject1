@@ -1,6 +1,9 @@
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -116,8 +119,13 @@ public class Command {
 			break;
 		}
 	}
-	public void publish(JSONObject cmd){
-		String resourceStr=cmd.get("resource").toJSONString();
+	public void publish(JSONObject cmd) throws IOException{
+		Resource publishResource = new Resource();
+		for (Object key : cmd.keySet()) {
+			publishResource.setter(key.toString(), cmd.get(key).toString());
+		}	
+		
+		String resourceStr=cmd.get("resource").toString();
 		String name=cmd.get("name").toString();
 		File resource=new File(name+".json");
 		FileOutputStream out = new FileOutputStream(resource);
