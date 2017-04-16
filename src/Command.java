@@ -37,13 +37,16 @@ public class Command {
 	public String secret;
 	public Resource resource;
 	public boolean relay;
-	public ArrayList<String> serverList;
+	public JSONArray serverList;
 	public JSONArray resourceTemplate;
 	
 	public Command(String command){
 		this.command=command;
 	}
 	
+	public void setCommand(String command){
+		this.command=command;
+	}
 	public void setSecret(String secret){
 		this.secret=secret;
 	}
@@ -64,36 +67,41 @@ public class Command {
 		this.resourceTemplate=resourceTemplate;
 	}
 	
-	public JSONObject toJson() throws ParseException{
-		String jsonStr="";
-		JSONParser parser = new JSONParser();
+	public JSONObject toJson(){
+		JSONObject JSONcmd=new JSONObject();
 		switch(this.command){
 		case "publish":
-			jsonStr="\"command\":\"PUBLISH\","+resource.toString();
+			JSONcmd.put("command", "publish");
+			JSONcmd.put("resource", resource.toJSON().toJSONString());
 			break;
 		case "remove":
-			jsonStr="\"command\":\"REMOVE\","+resource.toString();
+			JSONcmd.put("command", "remove");
+			JSONcmd.put("resource", resource.toJSON().toJSONString());
 			break;
 		case "share":
-			jsonStr="\"command\":\"SHARE\",\"secret\":"+secret+","+resource.toString();
+			JSONcmd.put("command", "share");
+			JSONcmd.put("resource", resource.toJSON().toJSONString());
 			break;
 		case "query":
-			jsonStr="\"command\":\"QUERY\",\"relay\":"+relay+","+resource.toString();
+			JSONcmd.put("command", "query");
+			JSONcmd.put("resource", resource.toJSON().toJSONString());
 			break;
 		case "fetch":
-			jsonStr="\"command\":\"FETCH\","+resource.toString();
+			JSONcmd.put("command", "fetch");
+			JSONcmd.put("resource", resource.toJSON().toJSONString());
 			break;
 		default:break;
 		}
-		return (JSONObject)parser.parse(jsonStr);
+		return JSONcmd;
 	}
 	
 	/**
 	 * this publish method takes a json as input
 	 * and write a json file on server.
 	 * @throws ParseException 
+	 * @throws IOException 
 	 * **/
-	public void parseCommand(String command) throws ParseException {
+	public void parseCommand(String command) throws ParseException, IOException {
 		JSONParser parser = new JSONParser();
 		JSONObject jsonCommand = (JSONObject) parser.parse(command);
 		switch(jsonCommand.get("command").toString()) {
@@ -134,6 +142,21 @@ public class Command {
 		int length=resourceStr.length();
 		out.write(bytes, 0, length);
 		out.close();
+	}
+	public void remove(JSONObject cmd){
+		
+	}
+	public void query(JSONObject cmd){
+		
+	}
+	public void share(JSONObject cmd){
+		
+	}
+	public void fetch(JSONObject cmd){
+		
+	}
+	public void exchange(JSONObject cmd){
+		
 	}
 
 }

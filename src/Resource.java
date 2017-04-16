@@ -1,6 +1,7 @@
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.*;
+
 import java.util.*;
 
 public class Resource {
@@ -100,16 +101,40 @@ public class Resource {
 		}
 	}
 	*/
-	public String toString(Resource obj) {
-		return obj.toString();
+	public String toString(/*Resource obj*/) {
+		//return obj.toString();
+		return this.toJSON().toString();
 	}
 	
-	public JSONObject toJSON(Resource obj) throws ParseException {
-		JSONParser parser = new JSONParser();
-		return (JSONObject)parser.parse(obj.toString());
+	public JSONObject toJSON(){
+		/*JSONParser parser = new JSONParser();
+		return (JSONObject)parser.parse(obj.toString());*/
+		JSONObject resource=new JSONObject();
+        resource.put("name", this.name);
+        resource.put("description", this.description);
+        resource.put("tags",this.tags);
+        resource.put("uri", this.uri);
+        resource.put("channel", this.channel);
+        resource.put("owner",this.owner);
+        resource.put("ezserver", this.ezserver);
+        return resource;
+		
 	}
 	
-	
+	public static void main(String[] args){
+		Command cmd=new Command("publish");
+		
+		Resource rs=new Resource();
+		rs.setter("name", "testfile");
+		rs.setter("discription", "this is a test file");
+		rs.setter("tags", "text,test");
+		rs.setter("uri", "www.test.org");
+		rs.setter("owner", "me");
+		cmd.setResource(rs);
+		System.out.println(rs.toString());
+		System.out.println(cmd.toJson().toString());
+		
+	}
 	
 	
 	
