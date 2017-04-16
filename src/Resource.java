@@ -121,20 +121,6 @@ public class Resource {
 		
 	}
 	
-	public static void main(String[] args){
-		Command cmd=new Command("publish");
-		
-		Resource rs=new Resource();
-		rs.setter("name", "testfile");
-		rs.setter("discription", "this is a test file");
-		rs.setter("tags", "text,test");
-		rs.setter("uri", "www.test.org");
-		rs.setter("owner", "me");
-		cmd.setResource(rs);
-		System.out.println(rs.toString());
-		System.out.println(cmd.toJson().toString());
-		
-	}
 	
 	
 	
