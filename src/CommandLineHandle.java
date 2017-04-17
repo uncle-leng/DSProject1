@@ -5,7 +5,7 @@ import org.json.simple.*;
 
 public class CommandLineHandle {
 	
-	public Command command;
+	public Command command=new Command();
 	public Options getOptions() {
 		Options options = new Options();
 		options.addOption("channel", true, "channel");

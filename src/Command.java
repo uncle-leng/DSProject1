@@ -1,9 +1,8 @@
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.io.PrintWriter;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -39,6 +38,15 @@ public class Command {
 	public boolean relay;
 	public JSONArray serverList;
 	public JSONArray resourceTemplate;
+	
+	public Command(){
+		command="";
+		secret="";
+		resource=new Resource();
+		relay=false;
+		serverList=null;
+		resourceTemplate=null;
+	}
 	
 	public Command(String command){
 		this.command=command;
@@ -105,44 +113,60 @@ public class Command {
 		JSONParser parser = new JSONParser();
 		JSONObject jsonCommand = (JSONObject) parser.parse(command);
 		switch(jsonCommand.get("command").toString()) {
-		case "PUBLISH":
+		case "publish":
 			publish(jsonCommand); // call publish function
 			break;
-		case "REMOVE":
+		case "remove":
 			remove(jsonCommand);
 			break;
-		case "SHARE":
+		case "share":
 			share(jsonCommand);
 			break;
-		case "QUERY":
+		case "query":
 			query(jsonCommand);
 			break;
-		case "FETCH":
+		case "fetch":
 			fetch(jsonCommand);
 			break;
-		case "EXCHANGE":
+		case "exchange":
 			exchange(jsonCommand);
 			break;
 		default:
 			break;
 		}
 	}
-	public void publish(JSONObject cmd) throws IOException{
-		Resource publishResource = new Resource();
-		for (Object key : cmd.keySet()) {
-			publishResource.setter(key.toString(), cmd.get(key).toString());
-		}	
-		
-		String resourceStr=cmd.get("resource").toString();
-		String name=cmd.get("name").toString();
-		File resource=new File(name+".json");
-		FileOutputStream out = new FileOutputStream(resource);
-		byte[] bytes=new byte[512];
-		bytes=resourceStr.getBytes();
-		int length=resourceStr.length();
-		out.write(bytes, 0, length);
-		out.close();
+
+	public void publish(JSONObject cmd){
+		/*Resource publishResource = new Resource();
+		JSONParser parser=new JSONParser();*/
+		String rsStr=cmd.get("resource").toString();
+		try{
+			/*Object obj=parser.parse(rsStr);
+			JSONObject rsjson=(JSONObject)obj;
+		for (Object key : rsjson.keySet()) {
+			publishResource.setter(key.toString(), rsjson.get(key).toString());
+		}*/	
+		writeFile(Server.resourceList,rsStr);
+	
+		}
+	
+		//catch(ParseException e){
+			//e.printStackTrace();
+		//}
+	catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
+	
+	public void writeFile(String filePath,String resource) throws IOException{
+	    FileWriter fw = new FileWriter(filePath,true);
+	    PrintWriter out = new PrintWriter(fw);
+	    out.write(resource);
+	    out.println();
+	    fw.close();
+	    out.close();
+	    }
+	
 	public void remove(JSONObject cmd){
 		
 	}

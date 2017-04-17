@@ -2,6 +2,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.*;
 
+import java.io.IOException;
 import java.util.*;
 
 public class Resource {
@@ -17,7 +18,7 @@ public class Resource {
 	public Resource() {
 		this.name = "";
 		this.description = "";
-		this.tags = new ArrayList();
+		this.tags = new ArrayList<String>();
 		this.uri = "";
 		this.channel = "";
 		this.owner = "";
@@ -121,29 +122,19 @@ public class Resource {
 		
 	}
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+	/**
+	 * This method determines whether two resources are the same resource
+	 * The primary key for a resource being a tuple(owner,channel,uri)
+	 */
+	public boolean equal(Resource resource){
+		if(
+				this.owner.equals(resource.owner)&&
+				this.channel.equals(resource.channel)&&
+				this.uri.equals(resource.uri)
+				)
+			return true;
+		else
+			return false;
+	}
+
 }
