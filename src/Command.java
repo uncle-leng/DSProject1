@@ -248,34 +248,38 @@ public class Command {
 		Resource res = new Resource().fromJSON(cmd);
 		JSONObject resourceTemplate = res.toJSON();
 		ArrayList<Resource> allResource = getAllResource(filePath);
-		for (Resource resource : allResource) {
-			if (queryMatch(resource, resourceTemplate)) {
-				resource.setter("owner", "*");
-				queryResult.add(resource.toJSON());
+		try{
+			for (Resource resource : allResource) {
+				if (queryMatch(resource, resourceTemplate)) {
+					resource.setter("owner", "*");
+					queryResult.add(resource.toJSON());
+				}
 			}
-		}
-		if (queryResult.size() != 0) {
-			JSONObject success = new JSONObject();
-			success.put("response", "success");
-			finalResult.add(success);
-			for (JSONObject q : queryResult) {
-				finalResult.add(q);
+			if (queryResult.size() != 0) {
+				JSONObject success = new JSONObject();
+				success.put("response", "success");
+				finalResult.add(success);
+				for (JSONObject q : queryResult) {
+					finalResult.add(q);
+				}
+				JSONObject resultSize = new JSONObject();
+				resultSize.put("resultSize", Integer.toString(queryResult.size()));
+				finalResult.add(resultSize);
 			}
-			JSONObject resultSize = new JSONObject();
-			resultSize.put("resultSize", Integer.toString(queryResult.size()));
-			finalResult.add(resultSize);
-		}
-		else if (resourceTemplate.toJSONString().equals("")) {
-			JSONObject error = new JSONObject();
-			error.put("response", "error");
-			error.put("errorMesage", "missing resourceTemplate");
-			finalResult.add(error);
-		}
-		else {
+			else if (resourceTemplate.toJSONString().equals("")) {
+				JSONObject error = new JSONObject();
+				error.put("response", "error");
+				error.put("errorMesage", "missing resourceTemplate");
+				finalResult.add(error);
+			}
+			}
+		catch (ParseException e) {
+			
 			JSONObject error = new JSONObject();
 			error.put("response", "error");
 			error.put("errorMesage", "invalid resourceTemplate");
 			finalResult.add(error);
+
 		}
 		for (JSONObject result : finalResult) {
 			resultStr += result.toJSONString();
