@@ -34,36 +34,8 @@ public class Resource {
 		this.owner = obj.owner;
 		this.ezserver = obj.ezserver;
 	}
-	/*
-	
-	public void setName(String name) {
-		this.name = name;
-	}
-	
-	public void setDescription(String description) {
-		this.description = description;
-	}
-	
-	public void setTags(ArrayList<String> tags) {
-		this.tags = tags;
-	}
-	
-	public void setUri(String uri) {
-		this.uri = uri;
-	}
-	
-	public void setChannel(String channel) {
-		this.channel = channel;
-	}
-	
-	public void setOwner(String owner) {
-		this.owner = owner;
-	}
-	
-	public void setEzerver(String ezserver) {
-		this.ezserver = ezserver;
-	}
-	*/
+
+
 	public void setter(String key, String value) {
 		switch (key) {
 		case "name" : 
@@ -95,6 +67,17 @@ public class Resource {
 			
 		}
 	}
+	public Resource fromString(String resourceStr) throws ParseException {
+		Resource resource = new Resource();
+		JSONParser parser = new JSONParser();
+		JSONObject resourceObj = (JSONObject) parser.parse(resourceStr);
+		for(Iterator iterator = resourceObj.keySet().iterator(); iterator.hasNext();) {
+			String key = (String) iterator.next();
+			this.setter(key, (String) resourceObj.get(key));
+		}
+		return resource;
+		
+	}
 	/*
 	public void setter(String key, ArrayList<String> value) {
 		if (key.equals("tags")) {
@@ -120,6 +103,12 @@ public class Resource {
         resource.put("ezserver", this.ezserver);
         return resource;
 		
+	}
+	
+	public Resource fromJSON(JSONObject obj) throws ParseException {
+		Resource resource = new Resource();
+		String objStr = obj.toJSONString();
+		return fromString(objStr);
 	}
 	
 	/**
