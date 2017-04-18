@@ -6,6 +6,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.io.*;
+import java.util.*;
+import java.lang.*;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -40,7 +43,8 @@ public class Command {
 	public Resource resource;
 	public boolean relay;
 	public JSONArray serverList;
-	public JSONArray resourceTemplate;
+	//public JSONArray resourceTemplate;
+	public JSONObject resourceTemplate;
 	
 	public Command(){
 		command="";
@@ -48,7 +52,7 @@ public class Command {
 		resource=new Resource();
 		relay=false;
 		serverList=null;
-		resourceTemplate=null;
+		resourceTemplate=new Resource().toJSON();
 	}
 	
 	public Command(String command){
@@ -74,7 +78,7 @@ public class Command {
 		this.serverList.add(server);
 	}
 	
-	public void setResourceTemplate(JSONArray resourceTemplate){
+	public void setResourceTemplate(JSONObject resourceTemplate){
 		this.resourceTemplate=resourceTemplate;
 	}
 	
@@ -95,7 +99,7 @@ public class Command {
 			break;
 		case "query":
 			JSONcmd.put("command", "query");
-			JSONcmd.put("resource", resource.toJSON().toJSONString());
+			JSONcmd.put("resourceTemplate", resource);
 			break;
 		case "fetch":
 			JSONcmd.put("command", "fetch");
@@ -200,7 +204,7 @@ public class Command {
 	    fw.close();
 	    out.close();
 	    }
-	
+
 	public ArrayList<String> readFile(String filePath) throws IOException{
 		ArrayList<String> resourcelist=new ArrayList<String>();
 		File file=new File(filePath);
@@ -214,15 +218,126 @@ public class Command {
 		}
 		reader.close();
 		return resourcelist;
-		
+		}
+
+	public Resource readJSON(File JSONTXT) throws ParseException {
+		String JSONStr = "";
+		Resource resource = new Resource();
+		try {
+			
+			if (JSONTXT.isFile() && JSONTXT.exists()) {
+				InputStreamReader read = new InputStreamReader(
+                new FileInputStream(JSONTXT));
+                BufferedReader bufferedReader = new BufferedReader(read);
+                String lineTxt = null;
+                while ((lineTxt = bufferedReader.readLine()) != null) {
+                	JSONStr += lineTxt;
+                }
+                bufferedReader.close();
+                read.close();
+			}
+			else {
+				System.out.println("can not find the file !");
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return resource.fromString(JSONStr);
+	}
+	
+	public ArrayList<Resource> getAllResource(String filePath) throws ParseException {
+		ArrayList<Resource> allResource = new ArrayList<Resource>();
+		File f = null;
+		f = new File(filePath);
+		File[] files = f.listFiles();
+		for (File file : files) {
+			Resource fileResource = readJSON(file);
+			allResource.add(fileResource);
+		}
+		return allResource;
+	}
+	
+	public boolean intersection(ArrayList<String> l1, ArrayList<String> l2) {
+		List list = new ArrayList(Arrays.asList(new Object[l1.size()])); 
+		Collections.copy(list, l1); 
+        list.retainAll(l2); 
+        if (list.size() == 0) {
+        	return false;
+        }
+        else {
+        	return true;
+        }
+	}
+	
+	
+	public boolean queryMatch(Resource resource, JSONObject resourceTemplate) throws ParseException {
+		//boolean match = true;
+		JSONParser parser = new JSONParser();
+		//JSONObject resourceTemplate = (JSONObject) parser.parse((String)queryJSON.get("resourceTemplate"));
+		Resource rt = new Resource().fromJSON(resourceTemplate);
+		if (! resource.channel.equals(rt.channel)) {return false;}
+		if (( rt.owner.equals("")) || (! resource.owner.equals(rt.owner))) {return false;}
+		if (! intersection(resource.tags, rt.tags)) {return false;}
+		if (! resource.uri.equals(rt.uri)) {return false;}
+		if ((rt.name.equals("") || resource.name.contains(rt.name)) && 
+			(rt.description.equals("") || resource.description.contains(rt.description)) && 
+			((!rt.description.equals("")) || (!rt.name.equals("")))) {return false;}
+		return true;
 	}
 	
 	public void remove(JSONObject cmd){
 		
 	}
-	public void query(JSONObject cmd){
+	public String query(JSONObject cmd) throws ParseException{
+		ArrayList<JSONObject> queryResult = new ArrayList<JSONObject>();
+		ArrayList<JSONObject> finalResult = new ArrayList<JSONObject>();
+		String resultStr = "";
+		String filePath = "./resource";
+		Resource res = new Resource().fromJSON(cmd);
+		JSONObject resourceTemplate = res.toJSON();
+		ArrayList<Resource> allResource = getAllResource(filePath);
+		try{
+			for (Resource resource : allResource) {
+				if (queryMatch(resource, resourceTemplate)) {
+					resource.setter("owner", "*");
+					queryResult.add(resource.toJSON());
+				}
+			}
+			if (queryResult.size() != 0) {
+				JSONObject success = new JSONObject();
+				success.put("response", "success");
+				finalResult.add(success);
+				for (JSONObject q : queryResult) {
+					finalResult.add(q);
+				}
+				JSONObject resultSize = new JSONObject();
+				resultSize.put("resultSize", Integer.toString(queryResult.size()));
+				finalResult.add(resultSize);
+			}
+			else if (resourceTemplate.toJSONString().equals("")) {
+				JSONObject error = new JSONObject();
+				error.put("response", "error");
+				error.put("errorMesage", "missing resourceTemplate");
+				finalResult.add(error);
+			}
+			}
+		catch (ParseException e) {
+			
+			JSONObject error = new JSONObject();
+			error.put("response", "error");
+			error.put("errorMesage", "invalid resourceTemplate");
+			finalResult.add(error);
+
+		}
+		for (JSONObject result : finalResult) {
+			resultStr += result.toJSONString();
+		}
+		return resultStr;
 		
 	}
+	
+	
 	public void share(JSONObject cmd){
 		
 	}
