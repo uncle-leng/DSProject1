@@ -1,8 +1,11 @@
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileOutputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -137,27 +140,58 @@ public class Command {
 	}
 
 	public void publish(JSONObject cmd){
-		/*Resource publishResource = new Resource();
-		JSONParser parser=new JSONParser();*/
-		String rsStr=cmd.get("resource").toString();
+		String newres=cmd.get("resource").toString();
+		JSONObject obj1=toJSON(newres);
 		try{
-			/*Object obj=parser.parse(rsStr);
-			JSONObject rsjson=(JSONObject)obj;
-		for (Object key : rsjson.keySet()) {
-			publishResource.setter(key.toString(), rsjson.get(key).toString());
-		}*/	
-		writeFile(Server.resourceList,rsStr);
-	
+			ArrayList<String> resList=readFile(Server.resourceList);
+			if(resList==null){
+			writeFile(Server.resourceList,newres);
+			}
+			else
+			{
+				//for(String oldres:resList){
+				for(int i=0;i<resList.size();i++){	
+				//JSONObject obj2=toJSON(oldres);
+				JSONObject obj2=toJSON(resList.get(i));	
+				if(equal(obj1,obj2)){
+					resList.remove(resList.get(i));
+					//resList.remove(oldres);
+						resList.add(newres);
+					}
+					else{
+						resList.add(newres);
+					}
+				}
+				writeFile(Server.resourceList,newres);
+			}
 		}
-	
-		//catch(ParseException e){
-			//e.printStackTrace();
-		//}
 	catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
+	public JSONObject toJSON(String jsonStr){
+		JSONParser parser=new JSONParser();
+		JSONObject json=new JSONObject();
+		try {
+			Object obj=parser.parse(jsonStr);
+			json=(JSONObject)obj;
+
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return json;
+	}
+	private boolean equal(JSONObject res1,JSONObject res2){
+		if(res1.get("owner").toString().equals(res2.get("owner").toString())&&
+				res1.get("channel").toString().equals(res2.get("channel").toString())&&
+				res1.get("uri").toString().equals(res2.get("uri").toString())
+				)
+			return true;
+		else
+			return false;
+	}
 	public void writeFile(String filePath,String resource) throws IOException{
 	    FileWriter fw = new FileWriter(filePath,true);
 	    PrintWriter out = new PrintWriter(fw);
@@ -166,6 +200,22 @@ public class Command {
 	    fw.close();
 	    out.close();
 	    }
+	
+	public ArrayList<String> readFile(String filePath) throws IOException{
+		ArrayList<String> resourcelist=new ArrayList<String>();
+		File file=new File(filePath);
+		if(!file.exists())
+			return null;
+		BufferedReader reader=null;
+		reader=new BufferedReader(new FileReader(file));
+		String string=null;
+		while((string=reader.readLine())!=null){
+			resourcelist.add(string);
+		}
+		reader.close();
+		return resourcelist;
+		
+	}
 	
 	public void remove(JSONObject cmd){
 		
