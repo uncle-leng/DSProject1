@@ -25,6 +25,27 @@ public class Resource {
 		this.ezserver = null;
 	}
 	
+	public Resource(JSONObject obj) {
+		this.name = obj.get("name").toString();
+		this.description = obj.get("description").toString();
+		String[] tagArray = obj.get("tags").toString().split(",");
+		ArrayList<String> tagArrayList= new ArrayList<String>();
+		Collections.addAll(tagArrayList, tagArray);
+		this.tags = tagArrayList;
+		this.uri = obj.get("uri").toString();
+		this.channel = obj.get("channel").toString();
+		this.owner = obj.get("owner").toString();
+		if (obj.get("ezserver") == null) {
+			this.ezserver = null;
+		}
+		else {
+			this.ezserver = obj.get("ezserver").toString();
+		}
+	
+		
+		
+	}
+	
 	public Resource(Resource obj) {
 		this.name = obj.name;
 		this.description = obj.description;
@@ -33,6 +54,28 @@ public class Resource {
 		this.channel = obj.channel;
 		this.owner = obj.owner;
 		this.ezserver = obj.ezserver;
+	}
+	
+	public Resource(String str) throws ParseException {
+		JSONParser parser = new JSONParser();
+		JSONObject obj = (JSONObject) parser.parse(str);
+		this.name = obj.get("name").toString();
+		this.description = obj.get("description").toString();
+		String[] tagArray = obj.get("tags").toString().split(",");
+		ArrayList<String> tagArrayList= new ArrayList<String>();
+		Collections.addAll(tagArrayList, tagArray);
+		this.tags = tagArrayList;
+		this.uri = obj.get("uri").toString();
+		this.channel = obj.get("channel").toString();
+		this.owner = obj.get("owner").toString();
+		if (obj.get("ezserver") == null) {
+			this.ezserver = null;
+		}
+		else {
+			this.ezserver = obj.get("ezserver").toString();
+		}
+		
+		
 	}
 
 
@@ -73,7 +116,7 @@ public class Resource {
 		JSONObject resourceObj = (JSONObject) parser.parse(resourceStr);
 		for(Iterator iterator = resourceObj.keySet().iterator(); iterator.hasNext();) {
 			String key = (String) iterator.next();
-			this.setter(key, (String) resourceObj.get(key));
+			this.setter(key,resourceObj.get(key).toString());
 		}
 		return resource;
 		
@@ -104,12 +147,13 @@ public class Resource {
         return resource;
 		
 	}
-	
+	/*
 	public Resource fromJSON(JSONObject obj) throws ParseException {
 		Resource resource = new Resource();
 		String objStr = obj.toJSONString();
 		return fromString(objStr);
 	}
+	*/
 	
 	/**
 	 * This method determines whether two resources are the same resource
