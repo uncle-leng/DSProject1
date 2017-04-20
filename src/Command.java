@@ -132,7 +132,7 @@ public class Command {
 			result=publish(jsonCommand); // call publish function
 			break;
 		case "remove":
-			remove(jsonCommand);
+			result=remove(jsonCommand);
 			break;
 		case "share":
 			share(jsonCommand);
@@ -228,6 +228,51 @@ public class Command {
 		reader.close();
 		return resourcelist;
 		}
+	
+	public String remove(JSONObject cmd){
+		JSONObject response=new JSONObject();
+		String rmresStr=cmd.get("resource").toString();
+		JSONObject rmresJSON=toJSON(rmresStr);
+		Resource rmres=new Resource(rmresJSON);
+		String rmfilename=rmres.getPK().replaceAll(":", "").replaceAll("/", "")+".json";
+		if(rmres.isEmpty()){
+			response.put("response", "error");
+			response.put("errorMessage", "missing resource");
+			return response.toJSONString();
+		}
+		File file=new File("Resource");
+		if(file.exists()&&file.isDirectory()){
+			String[] filelist=file.list();
+			ArrayList<String> list=new ArrayList();
+			for(String tempfile:filelist){
+				list.add(tempfile);
+			}
+			if(list.contains(rmfilename)){
+				String filepath=Server.resourceFolder+rmfilename;
+				File rmfile=new File(filepath);
+				if(rmfile.delete())
+				{
+					response.put("response", "success");
+				}
+				else
+				{
+					response.put("response", "error");
+					response.put("errorMessage", "cannot remove resource");
+				}
+			}
+			else{
+				response.put("response", "error");
+				response.put("errorMessage", "cannot remove resource");
+			}
+			
+		}
+		else{
+			response.put("response", "error");
+			response.put("errorMessage", "cannot remove resource");
+		}
+		return response.toJSONString();
+		
+	}
 
 	public Resource readJSON(File JSONTXT) throws ParseException {
 		String JSONStr = "";
@@ -296,9 +341,6 @@ public class Command {
 		return true;
 	}
 	
-	public void remove(JSONObject cmd){
-		
-	}
 	public String query(JSONObject cmd) throws ParseException{
 		JSONParser parser = new JSONParser();
 		ArrayList<JSONObject> queryResult = new ArrayList<JSONObject>();

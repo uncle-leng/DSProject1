@@ -1,9 +1,10 @@
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 
-import java.io.IOException;
-import java.util.*;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 public class Resource {
 	public String name;
@@ -201,7 +202,7 @@ public class Resource {
 		String channel=this.channel;
 		String uri=this.uri;
 		String PK="("+owner+","+channel+","+uri+")";
-		return PK;
+		return PK.trim();
 	}
 
 }
