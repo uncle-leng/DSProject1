@@ -25,6 +25,26 @@ public class Resource {
 		this.ezserver = null;
 	}
 	
+	public Resource(JSONObject resjson){
+		this.name=resjson.get("name").toString();
+		this.description=resjson.get("description").toString();
+		if(resjson.get("tags").toString().equals("[]"))
+			this.tags=new ArrayList<String>();
+		else{
+			String[] tagArray = resjson.get("tags").toString().split(",");
+			ArrayList<String> tagArrayList= new ArrayList<String>();
+			Collections.addAll(tagArrayList, tagArray);
+			this.tags = tagArrayList;
+			}
+		this.uri=resjson.get("uri").toString();
+		this.channel=resjson.get("channel").toString();
+		this.owner=resjson.get("owner").toString();
+		if(resjson.get("ezserver")==null)
+			this.ezserver=null;
+		else
+			this.ezserver=resjson.get("ezserver").toString();
+		}
+	
 	public Resource(Resource obj) {
 		this.name = obj.name;
 		this.description = obj.description;
@@ -34,26 +54,34 @@ public class Resource {
 		this.owner = obj.owner;
 		this.ezserver = obj.ezserver;
 	}
-
-
-	public Resource(JSONObject resjson){
-		this.name=resjson.get("name").toString();
-		this.description=resjson.get("description").toString();
-		if(resjson.get("tags").toString().equals("[]"))
+	
+	public Resource(String str) throws ParseException {
+		JSONParser parser = new JSONParser();
+		JSONObject obj = (JSONObject) parser.parse(str);
+		this.name = obj.get("name").toString();
+		this.description = obj.get("description").toString();
+		if(obj.get("tags").toString().equals("[]"))
 			this.tags=new ArrayList<String>();
-		else
-		{String[] tagArray = resjson.get("tags").toString().split(",");
-		ArrayList<String> tagArrayList= new ArrayList<String>();
-		Collections.addAll(tagArrayList, tagArray);
-		this.tags = tagArrayList;}
-		this.uri=resjson.get("uri").toString();
-		this.channel=resjson.get("channel").toString();
-		this.owner=resjson.get("owner").toString();
-		if(resjson.get("ezserver")==null)
-			this.ezserver=null;
-		else
-			this.ezserver=resjson.get("ezserver").toString();
+		else{
+			String[] tagArray = obj.get("tags").toString().split(",");
+		    ArrayList<String> tagArrayList= new ArrayList<String>();
+		    Collections.addAll(tagArrayList, tagArray);
+		    this.tags = tagArrayList;
+		    }
+		this.uri = obj.get("uri").toString();
+		this.channel = obj.get("channel").toString();
+		this.owner = obj.get("owner").toString();
+		if (obj.get("ezserver") == null) {
+			this.ezserver = null;
 		}
+		else {
+			this.ezserver = obj.get("ezserver").toString();
+		}
+		
+		
+	}
+
+
 	
 	public void setter(String key, String value) {
 		switch (key) {
@@ -105,7 +133,7 @@ public class Resource {
 		JSONObject resourceObj = (JSONObject) parser.parse(resourceStr);
 		for(Iterator iterator = resourceObj.keySet().iterator(); iterator.hasNext();) {
 			String key = (String) iterator.next();
-			this.setter(key, (String) resourceObj.get(key));
+			this.setter(key,resourceObj.get(key).toString());
 		}
 		return resource;
 		
@@ -136,12 +164,13 @@ public class Resource {
         return resource;
 		
 	}
-	
+	/*
 	public Resource fromJSON(JSONObject obj) throws ParseException {
 		Resource resource = new Resource();
 		String objStr = obj.toJSONString();
 		return fromString(objStr);
 	}
+	*/
 	
 	/**
 	 * This method determines whether two resources are the same resource
@@ -165,11 +194,6 @@ public class Resource {
 			return true;
 		else
 			return false;
-	}
-	public static void main(String args[]){
-		Resource test=new Resource();
-		System.out.println(test.toString());
-		System.out.println(test.isEmpty());
 	}
 
 }

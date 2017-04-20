@@ -43,8 +43,8 @@ public class Command {
 	public Resource resource;
 	public boolean relay;
 	public JSONArray serverList;
-	//public JSONArray resourceTemplate;
-	public JSONObject resourceTemplate;
+	public JSONArray resourceTemplate;
+	//public JSONObject resourceTemplate;
 	
 	public Command(){
 		command="";
@@ -52,7 +52,8 @@ public class Command {
 		resource=new Resource();
 		relay=false;
 		serverList=null;
-		resourceTemplate=new Resource().toJSON();
+		//resourceTemplate=new Resource().toJSON();
+		resourceTemplate = new JSONArray();
 	}
 	
 	public Command(String command){
@@ -78,7 +79,7 @@ public class Command {
 		this.serverList.add(server);
 	}
 	
-	public void setResourceTemplate(JSONObject resourceTemplate){
+	public void setResourceTemplate(JSONArray resourceTemplate){
 		this.resourceTemplate=resourceTemplate;
 	}
 	
@@ -99,7 +100,7 @@ public class Command {
 			break;
 		case "query":
 			JSONcmd.put("command", "query");
-			JSONcmd.put("resourceTemplate", resource);
+			JSONcmd.put("resource", resource.toJSON().toJSONString());
 			break;
 		case "fetch":
 			JSONcmd.put("command", "fetch");
@@ -153,48 +154,6 @@ public class Command {
 		}
 		return result;
 	}
-
-	/*public String publish(JSONObject cmd){
-		JSONObject response=new JSONObject();
-		String newres=cmd.get("resource").toString();
-		JSONObject obj1=toJSON(newres);
-		Resource rs=new Resource(obj1);
-	//System.out.println(rs.toString());	
-		if(rs.isEmpty()){
-			response.put("response", "error");
-			response.put("errorMessage", "missing resource");
-			return response.toJSONString();
-		}
-		try{
-			ArrayList<String> resList=readFile(Server.resourceList);
-			if(resList==null){
-			writeFile(Server.resourceList,newres);
-			}
-			else
-			{
-				//for(String oldres:resList){
-				for(int i=0;i<resList.size();i++){	
-				//JSONObject obj2=toJSON(oldres);
-				JSONObject obj2=toJSON(resList.get(i));	
-				if(equal(obj1,obj2)){
-					resList.remove(resList.get(i));
-					//resList.remove(oldres);
-						resList.add(newres);
-					}
-					else{
-						resList.add(newres);
-					}
-				}
-				writeFile(Server.resourceList,newres);
-				response.put("response", "success");
-			}
-		}
-	catch (IOException e) {
-			response.put("response", "error");
-			response.put("errorMessage", "cannot publish resource");
-		}
-		return response.toJSONString();
-	}*/
 	
 	public String publish(JSONObject cmd){
 		JSONObject response=new JSONObject();
@@ -275,7 +234,7 @@ public class Command {
 
 	public Resource readJSON(File JSONTXT) throws ParseException {
 		String JSONStr = "";
-		Resource resource = new Resource();
+		//Resource resource = new Resource();
 		try {
 			
 			if (JSONTXT.isFile() && JSONTXT.exists()) {
@@ -296,7 +255,8 @@ public class Command {
 		catch (Exception e) {
 			e.printStackTrace();
 		}
-		return resource.fromString(JSONStr);
+		Resource resource = new Resource(JSONStr);
+		return resource;
 	}
 	
 	public ArrayList<Resource> getAllResource(String filePath) throws ParseException {
@@ -328,7 +288,7 @@ public class Command {
 		//boolean match = true;
 		JSONParser parser = new JSONParser();
 		//JSONObject resourceTemplate = (JSONObject) parser.parse((String)queryJSON.get("resourceTemplate"));
-		Resource rt = new Resource().fromJSON(resourceTemplate);
+		Resource rt = new Resource(resourceTemplate);
 		if (! resource.channel.equals(rt.channel)) {return false;}
 		if (( rt.owner.equals("")) || (! resource.owner.equals(rt.owner))) {return false;}
 		if (! intersection(resource.tags, rt.tags)) {return false;}
@@ -343,11 +303,14 @@ public class Command {
 		
 	}
 	public String query(JSONObject cmd) throws ParseException{
+		JSONParser parser = new JSONParser();
 		ArrayList<JSONObject> queryResult = new ArrayList<JSONObject>();
 		ArrayList<JSONObject> finalResult = new ArrayList<JSONObject>();
 		String resultStr = "";
 		String filePath = "./resource";
-		Resource res = new Resource().fromJSON(cmd);
+		System.out.println(cmd.toJSONString());
+		JSONObject resourceObj = (JSONObject) parser.parse(cmd.get("resource").toString());
+		Resource res = new Resource(resourceObj);
 		JSONObject resourceTemplate = res.toJSON();
 		ArrayList<Resource> allResource = getAllResource(filePath);
 		try{
