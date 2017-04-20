@@ -82,7 +82,7 @@ public class Command {
 		this.resourceTemplate=resourceTemplate;
 	}
 	
-	public JSONObject toJson(){
+	public JSONObject toJSON(){
 		JSONObject JSONcmd=new JSONObject();
 		switch(this.command){
 		case "publish":
@@ -116,12 +116,19 @@ public class Command {
 	 * @throws ParseException 
 	 * @throws IOException 
 	 * **/
-	public void parseCommand(String command) throws ParseException, IOException {
+	public String parseCommand(String command) throws ParseException, IOException {
+		JSONObject response=new JSONObject();
 		JSONParser parser = new JSONParser();
 		JSONObject jsonCommand = (JSONObject) parser.parse(command);
+		String result="";
+		if(jsonCommand.isEmpty()){
+			response.put("response", "error");
+			response.put("errorMeaasge", "missing or incorrect type for command");
+			return response.toJSONString();
+		}
 		switch(jsonCommand.get("command").toString()) {
 		case "publish":
-			publish(jsonCommand); // call publish function
+			result=publish(jsonCommand); // call publish function
 			break;
 		case "remove":
 			remove(jsonCommand);
@@ -139,13 +146,25 @@ public class Command {
 			exchange(jsonCommand);
 			break;
 		default:
+			response.put("response", "error");
+			response.put("errorMessage", "invalid command");
+			result=response.toJSONString();
 			break;
 		}
+		return result;
 	}
 
-	public void publish(JSONObject cmd){
+	/*public String publish(JSONObject cmd){
+		JSONObject response=new JSONObject();
 		String newres=cmd.get("resource").toString();
 		JSONObject obj1=toJSON(newres);
+		Resource rs=new Resource(obj1);
+	//System.out.println(rs.toString());	
+		if(rs.isEmpty()){
+			response.put("response", "error");
+			response.put("errorMessage", "missing resource");
+			return response.toJSONString();
+		}
 		try{
 			ArrayList<String> resList=readFile(Server.resourceList);
 			if(resList==null){
@@ -167,11 +186,45 @@ public class Command {
 					}
 				}
 				writeFile(Server.resourceList,newres);
+				response.put("response", "success");
 			}
 		}
 	catch (IOException e) {
+			response.put("response", "error");
+			response.put("errorMessage", "cannot publish resource");
+		}
+		return response.toJSONString();
+	}*/
+	
+	public String publish(JSONObject cmd){
+		JSONObject response=new JSONObject();
+		String newresStr=cmd.get("resource").toString();
+		JSONObject newresJSON=toJSON(newresStr);
+		Resource newres=new Resource(newresJSON);
+	//System.out.println(rs.toString());	
+		if(newres.isEmpty()){
+			response.put("response", "error");
+			response.put("errorMessage", "missing resource");
+			return response.toJSONString();
+		}
+		try{
+			String resOwner=newres.getOwner();
+			String resChannel=newres.getChannel();
+			String resUri=newres.getUri();
+			String resFilename="("+resOwner+","+resChannel+","+resUri+").json";
+			String filePath=Server.resourceFolder+resFilename;
+			File file=new File("Resource");
+			if(!file.exists())
+				{file.mkdirs();}
+			writeFile(filePath,newresStr);
+			response.put("response", "success");		
+		}
+	catch (IOException e) {
+			response.put("response", "error");
+			response.put("errorMessage", "cannot publish resource");
 			e.printStackTrace();
 		}
+		return response.toJSONString();
 	}
 	
 	public JSONObject toJSON(String jsonStr){
@@ -197,7 +250,7 @@ public class Command {
 			return false;
 	}
 	public void writeFile(String filePath,String resource) throws IOException{
-	    FileWriter fw = new FileWriter(filePath,true);
+	    FileWriter fw = new FileWriter(filePath);
 	    PrintWriter out = new PrintWriter(fw);
 	    out.write(resource);
 	    out.println();

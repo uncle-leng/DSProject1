@@ -71,7 +71,7 @@ public class CommandLineHandle {
 			e.printStackTrace();
 		}
 		//return result.toString();
-		return command.toJson().toString();
+		return command.toJSON().toString();
 	}
 	
 	

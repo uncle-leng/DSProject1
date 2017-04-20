@@ -7,6 +7,7 @@ import java.net.Socket;
 
 import javax.net.ServerSocketFactory;
 
+import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 
 public class Server {
@@ -17,7 +18,7 @@ public class Server {
 	// Identifies the user number connected
 	private static int counter = 0;
 	
-	public static String resourceList="resourcelist.txt";
+	public static String resourceFolder="./Resource/";
 	//filename which stores resource information
 	private static Command command=new Command();
 
@@ -54,8 +55,9 @@ public class Server {
 		    DataOutputStream output = new DataOutputStream(clientSocket.
 		    		getOutputStream());
 		    //System.out.println(input.readUTF());
-		    command.parseCommand(input.readUTF());
+		    String response=command.parseCommand(input.readUTF());
 		    output.writeUTF("Server: Hi Client "+counter+" !!!");
+		    output.writeUTF(response);
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (ParseException e) {

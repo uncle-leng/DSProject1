@@ -36,6 +36,25 @@ public class Resource {
 	}
 
 
+	public Resource(JSONObject resjson){
+		this.name=resjson.get("name").toString();
+		this.description=resjson.get("description").toString();
+		if(resjson.get("tags").toString().equals("[]"))
+			this.tags=new ArrayList<String>();
+		else
+		{String[] tagArray = resjson.get("tags").toString().split(",");
+		ArrayList<String> tagArrayList= new ArrayList<String>();
+		Collections.addAll(tagArrayList, tagArray);
+		this.tags = tagArrayList;}
+		this.uri=resjson.get("uri").toString();
+		this.channel=resjson.get("channel").toString();
+		this.owner=resjson.get("owner").toString();
+		if(resjson.get("ezserver")==null)
+			this.ezserver=null;
+		else
+			this.ezserver=resjson.get("ezserver").toString();
+		}
+	
 	public void setter(String key, String value) {
 		switch (key) {
 		case "name" : 
@@ -67,6 +86,19 @@ public class Resource {
 			
 		}
 	}
+	
+	public String getUri() {
+		return uri;
+	}
+
+	public String getChannel() {
+		return channel;
+	}
+
+	public String getOwner() {
+		return owner;
+	}
+	
 	public Resource fromString(String resourceStr) throws ParseException {
 		Resource resource = new Resource();
 		JSONParser parser = new JSONParser();
@@ -124,6 +156,20 @@ public class Resource {
 			return true;
 		else
 			return false;
+	}
+	
+	public boolean isEmpty(){
+		if (this.name.equals("") && this.description.equals("") && this.tags.isEmpty()
+				&& this.uri.equals("") && this.channel.equals("") && this.owner.equals("")
+				&& this.ezserver == null)
+			return true;
+		else
+			return false;
+	}
+	public static void main(String args[]){
+		Resource test=new Resource();
+		System.out.println(test.toString());
+		System.out.println(test.isEmpty());
 	}
 
 }
