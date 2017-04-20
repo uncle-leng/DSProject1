@@ -1,3 +1,5 @@
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -11,22 +13,22 @@ public class Resource {
 	public String description;
 	//public String[] tags;
 	public ArrayList<String> tags;
-	public String uri;
+	public URI uri;
 	public String channel;
 	public String owner;
 	public String ezserver;
 	
-	public Resource() {
+	public Resource() throws URISyntaxException {
 		this.name = "";
 		this.description = "";
 		this.tags = new ArrayList<String>();
-		this.uri = "";
+		this.uri = new URI("");
 		this.channel = "";
 		this.owner = "";
 		this.ezserver = null;
 	}
 	
-	public Resource(JSONObject resjson){
+	public Resource(JSONObject resjson) throws URISyntaxException{
 		this.name=resjson.get("name").toString();
 		this.description=resjson.get("description").toString();
 		if(resjson.get("tags").toString().equals("[]"))
@@ -37,7 +39,7 @@ public class Resource {
 			Collections.addAll(tagArrayList, tagArray);
 			this.tags = tagArrayList;
 			}
-		this.uri=resjson.get("uri").toString();
+		this.uri=new URI(resjson.get("uri").toString());
 		this.channel=resjson.get("channel").toString();
 		this.owner=resjson.get("owner").toString();
 		if(resjson.get("ezserver")==null)
@@ -56,7 +58,7 @@ public class Resource {
 		this.ezserver = obj.ezserver;
 	}
 	
-	public Resource(String str) throws ParseException {
+	public Resource(String str) throws ParseException, URISyntaxException {
 		JSONParser parser = new JSONParser();
 		JSONObject obj = (JSONObject) parser.parse(str);
 		this.name = obj.get("name").toString();
@@ -69,7 +71,7 @@ public class Resource {
 		    Collections.addAll(tagArrayList, tagArray);
 		    this.tags = tagArrayList;
 		    }
-		this.uri = obj.get("uri").toString();
+		this.uri = new URI(obj.get("uri").toString());
 		this.channel = obj.get("channel").toString();
 		this.owner = obj.get("owner").toString();
 		if (obj.get("ezserver") == null) {
@@ -84,7 +86,7 @@ public class Resource {
 
 
 	
-	public void setter(String key, String value) {
+	public void setter(String key, String value) throws URISyntaxException {
 		switch (key) {
 		case "name" : 
 			this.name = value;
@@ -93,7 +95,7 @@ public class Resource {
 			this.description = value;
 			break;
 		case "uri" :
-			this.uri = value;
+			this.uri = new URI(value);
 			break;
 		case "channel" : 
 			this.channel = value;
@@ -116,7 +118,7 @@ public class Resource {
 		}
 	}
 	
-	public String getUri() {
+	public URI getUri() {
 		return uri;
 	}
 
@@ -128,7 +130,7 @@ public class Resource {
 		return owner;
 	}
 	
-	public Resource fromString(String resourceStr) throws ParseException {
+	public Resource fromString(String resourceStr) throws ParseException, URISyntaxException {
 		Resource resource = new Resource();
 		JSONParser parser = new JSONParser();
 		JSONObject resourceObj = (JSONObject) parser.parse(resourceStr);
@@ -158,7 +160,7 @@ public class Resource {
         resource.put("name", this.name);
         resource.put("description", this.description);
         resource.put("tags",this.tags);
-        resource.put("uri", this.uri);
+        resource.put("uri", this.uri.toString());
         resource.put("channel", this.channel);
         resource.put("owner",this.owner);
         resource.put("ezserver", this.ezserver);
@@ -200,7 +202,7 @@ public class Resource {
 	public String getPK(){
 		String owner=this.owner;
 		String channel=this.channel;
-		String uri=this.uri;
+		String uri=this.uri.toString();
 		String PK="("+owner+","+channel+","+uri+")";
 		return PK.trim();
 	}

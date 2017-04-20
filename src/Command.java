@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.io.*;
 import java.util.*;
 import java.lang.*;
+import java.net.URISyntaxException;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -43,17 +44,17 @@ public class Command {
 	public Resource resource;
 	public boolean relay;
 	public JSONArray serverList;
-	public JSONArray resourceTemplate;
+	public Resource resourceTemplate;
 	//public JSONObject resourceTemplate;
 	
-	public Command(){
+	public Command() throws URISyntaxException{
 		command="";
 		secret="";
 		resource=new Resource();
 		relay=false;
 		serverList=null;
 		//resourceTemplate=new Resource().toJSON();
-		resourceTemplate = new JSONArray();
+		resourceTemplate = new Resource();
 	}
 	
 	public Command(String command){
@@ -79,10 +80,10 @@ public class Command {
 		this.serverList.add(server);
 	}
 	
-	public void setResourceTemplate(JSONArray resourceTemplate){
-		this.resourceTemplate=resourceTemplate;
-	}
-	
+//	public void setResourceTemplate(JSONArray resourceTemplate){
+//		this.resourceTemplate=resourceTemplate;
+//	}
+//	
 	public JSONObject toJSON(){
 		JSONObject JSONcmd=new JSONObject();
 		switch(this.command){
@@ -104,7 +105,7 @@ public class Command {
 			break;
 		case "fetch":
 			JSONcmd.put("command", "fetch");
-			JSONcmd.put("resource", resource.toJSON().toJSONString());
+			JSONcmd.put("resource", resourceTemplate.toJSON().toJSONString());
 			break;
 		default:break;
 		}
@@ -116,8 +117,9 @@ public class Command {
 	 * and write a json file on server.
 	 * @throws ParseException 
 	 * @throws IOException 
+	 * @throws URISyntaxException 
 	 * **/
-	public String parseCommand(String command) throws ParseException, IOException {
+	public String parseCommand(String command) throws ParseException, IOException, URISyntaxException {
 		JSONObject response=new JSONObject();
 		JSONParser parser = new JSONParser();
 		JSONObject jsonCommand = (JSONObject) parser.parse(command);
@@ -141,7 +143,7 @@ public class Command {
 			query(jsonCommand);
 			break;
 		case "fetch":
-			fetch(jsonCommand);
+			result=fetch(jsonCommand);
 			break;
 		case "exchange":
 			exchange(jsonCommand);
@@ -155,7 +157,7 @@ public class Command {
 		return result;
 	}
 	
-	public String publish(JSONObject cmd){
+	public String publish(JSONObject cmd) throws URISyntaxException{
 		JSONObject response=new JSONObject();
 		String newresStr=cmd.get("resource").toString();
 		JSONObject newresJSON=toJSON(newresStr);
@@ -172,6 +174,11 @@ public class Command {
 			File file=new File("Resource");
 			if(!file.exists())
 				{file.mkdirs();}
+			
+			
+			
+			
+			
 			writeFile(filePath,newresStr);
 			response.put("response", "success");		
 		}
@@ -229,7 +236,7 @@ public class Command {
 		return resourcelist;
 		}
 	
-	public String remove(JSONObject cmd){
+	public String remove(JSONObject cmd) throws URISyntaxException{
 		JSONObject response=new JSONObject();
 		String rmresStr=cmd.get("resource").toString();
 		JSONObject rmresJSON=toJSON(rmresStr);
@@ -274,7 +281,7 @@ public class Command {
 		
 	}
 
-	public Resource readJSON(File JSONTXT) throws ParseException {
+	public Resource readJSON(File JSONTXT) throws ParseException, URISyntaxException {
 		String JSONStr = "";
 		//Resource resource = new Resource();
 		try {
@@ -301,7 +308,7 @@ public class Command {
 		return resource;
 	}
 	
-	public ArrayList<Resource> getAllResource(String filePath) throws ParseException {
+	public ArrayList<Resource> getAllResource(String filePath) throws ParseException, URISyntaxException {
 		ArrayList<Resource> allResource = new ArrayList<Resource>();
 		File f = null;
 		f = new File(filePath);
@@ -326,7 +333,7 @@ public class Command {
 	}
 	
 	
-	public boolean queryMatch(Resource resource, JSONObject resourceTemplate) throws ParseException {
+	public boolean queryMatch(Resource resource, JSONObject resourceTemplate) throws ParseException, URISyntaxException {
 		//boolean match = true;
 		JSONParser parser = new JSONParser();
 		//JSONObject resourceTemplate = (JSONObject) parser.parse((String)queryJSON.get("resourceTemplate"));
@@ -341,7 +348,7 @@ public class Command {
 		return true;
 	}
 	
-	public String query(JSONObject cmd) throws ParseException{
+	public String query(JSONObject cmd) throws ParseException, URISyntaxException{
 		JSONParser parser = new JSONParser();
 		ArrayList<JSONObject> queryResult = new ArrayList<JSONObject>();
 		ArrayList<JSONObject> finalResult = new ArrayList<JSONObject>();
@@ -396,7 +403,55 @@ public class Command {
 	public void share(JSONObject cmd){
 		
 	}
-	public void fetch(JSONObject cmd){
+	public String fetch(JSONObject cmd) throws URISyntaxException{
+		JSONObject response=new JSONObject();
+//		if(cmd.get("resourceTemplate") == null){
+//			response.put("response", "error");
+//			response.put("errorMessage", "missing resourceTemplate");
+//			return response.toJSONString();
+//		} 
+		String ftresStr=cmd.get("resource").toString();
+		JSONObject ftresJSON=toJSON(ftresStr);
+		Resource ftres=new Resource(ftresJSON);
+		String ftfilename=ftres.getPK().replaceAll(":", "").replaceAll("/", "")+".json";
+		if(ftres.isEmpty()){
+			response.put("response", "error");
+			response.put("errorMessage", "missing resourceTemplate");
+			return response.toJSONString();
+		}
+		File file=new File("Resource");
+		if(file.exists()&&file.isDirectory()){
+			String[] filelist=file.list();
+			ArrayList<String> list=new ArrayList();
+			for(String tempfile:filelist){
+				list.add(tempfile);
+			}
+			if(list.contains(ftfilename)){
+				String filepath=Server.resourceFolder+ftfilename;
+				File ftfile=new File(filepath);
+				response.put("response", "success");
+//				if(ftfile.delete())
+//				{
+//					response.put("response", "success");
+//				}
+//				else
+//				{
+//					response.put("response", "error");
+//					response.put("errorMessage", "cannot remove resource");
+//				}
+//			}
+//			else{
+//				response.put("response", "error");
+//				response.put("errorMessage", "cannot remove resource");
+//			}
+			}
+		}
+		else{
+			response.put("response", "error");
+			response.put("errorMessage", "invalid resourceTemplate");
+		
+		}
+		return response.toJSONString();
 		
 	}
 	public void exchange(JSONObject cmd){

@@ -5,6 +5,7 @@ import org.json.simple.*;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 
 public class Client {
@@ -15,7 +16,7 @@ public class Client {
 	private static CommandLineHandle commandLine = new CommandLineHandle();
 	private static Options options = commandLine.getOptions();
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws URISyntaxException {
 		try(Socket socket = new Socket(ip, port)){
 			// Output and Input Stream
 			DataInputStream input = new DataInputStream(socket.
