@@ -195,5 +195,13 @@ public class Resource {
 		else
 			return false;
 	}
+	
+	public String getPK(){
+		String owner=this.owner;
+		String channel=this.channel;
+		String uri=this.uri;
+		String PK="("+owner+","+channel+","+uri+")";
+		return PK;
+	}
 
 }

@@ -167,10 +167,7 @@ public class Command {
 			return response.toJSONString();
 		}
 		try{
-			String resOwner=newres.getOwner();
-			String resChannel=newres.getChannel();
-			String resUri=newres.getUri();
-			String resFilename="("+resOwner+","+resChannel+","+resUri+").json";
+			String resFilename=newres.getPK().replaceAll("/", "").replaceAll(":", "")+".json";
 			String filePath=Server.resourceFolder+resFilename;
 			File file=new File("Resource");
 			if(!file.exists())

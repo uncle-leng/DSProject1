@@ -37,7 +37,7 @@ public class CommandLineHandle {
 			//if (line.hasOption("channel")) {result.put("channel", line.getOptionValue("channel"));}
 			if (line.hasOption("channel")) {command.resource.setter("channel", line.getOptionValue("channel"));}
 			//if (line.hasOption("description")) {result.put("description", line.getOptionValue("description"));}
-			if (line.hasOption("description")) {command.resource.setter("description", line.getOptionValue("discription"));}
+			if (line.hasOption("description")) {command.resource.setter("description", line.getOptionValue("description"));}
 			if (line.hasOption("host")) {result.put("host", line.getOptionValue("host"));}//to  be improved
 			//if (line.hasOption("name")) {result.put("name", line.getOptionValue("name"));}
 			if (line.hasOption("name")) {command.resource.setter("name", line.getOptionValue("name"));}
