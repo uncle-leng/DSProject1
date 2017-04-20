@@ -1,3 +1,6 @@
+import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -11,7 +14,7 @@ public class Resource {
 	public String description;
 	//public String[] tags;
 	public ArrayList<String> tags;
-	public String uri;
+	public URI uri;
 	public String channel;
 	public String owner;
 	public String ezserver;
@@ -20,7 +23,7 @@ public class Resource {
 		this.name = "";
 		this.description = "";
 		this.tags = new ArrayList<String>();
-		this.uri = "";
+		this.uri = null;
 		this.channel = "";
 		this.owner = "";
 		this.ezserver = null;
@@ -37,7 +40,7 @@ public class Resource {
 			Collections.addAll(tagArrayList, tagArray);
 			this.tags = tagArrayList;
 			}
-		this.uri=resjson.get("uri").toString();
+		this.uri=URI.create(resjson.get("uri").toString());
 		this.channel=resjson.get("channel").toString();
 		this.owner=resjson.get("owner").toString();
 		if(resjson.get("ezserver")==null)
@@ -69,7 +72,7 @@ public class Resource {
 		    Collections.addAll(tagArrayList, tagArray);
 		    this.tags = tagArrayList;
 		    }
-		this.uri = obj.get("uri").toString();
+		this.uri = URI.create(obj.get("uri").toString());
 		this.channel = obj.get("channel").toString();
 		this.owner = obj.get("owner").toString();
 		if (obj.get("ezserver") == null) {
@@ -93,7 +96,7 @@ public class Resource {
 			this.description = value;
 			break;
 		case "uri" :
-			this.uri = value;
+			this.uri = URI.create(value);
 			break;
 		case "channel" : 
 			this.channel = value;
@@ -117,7 +120,7 @@ public class Resource {
 	}
 	
 	public String getUri() {
-		return uri;
+		return uri.toString();
 	}
 
 	public String getChannel() {
@@ -158,7 +161,7 @@ public class Resource {
         resource.put("name", this.name);
         resource.put("description", this.description);
         resource.put("tags",this.tags);
-        resource.put("uri", this.uri);
+        resource.put("uri", this.uri.toString());
         resource.put("channel", this.channel);
         resource.put("owner",this.owner);
         resource.put("ezserver", this.ezserver);
@@ -198,11 +201,18 @@ public class Resource {
 	}
 	
 	public String getPK(){
-		String owner=this.owner;
-		String channel=this.channel;
-		String uri=this.uri;
+		String owner=this.getOwner().trim();
+		String channel=this.getChannel().trim();
+		String uri=this.getUri().trim();
 		String PK="("+owner+","+channel+","+uri+")";
-		return PK.trim();
+		return PK;
+	}
+	public static void main(String[] args) throws URISyntaxException{
+		File file=new File("Resource");
+		System.out.println(file.toURI());
+		URI testuri=new URI("http://www.unimelb.edu.au");
+		System.out.println(testuri.getHost());
+		System.out.println("");
 	}
 
 }

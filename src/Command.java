@@ -121,7 +121,7 @@ public class Command {
 		JSONObject response=new JSONObject();
 		JSONParser parser = new JSONParser();
 		JSONObject jsonCommand = (JSONObject) parser.parse(command);
-		String result="";
+		String result="";	
 		if(jsonCommand.isEmpty()){
 			response.put("response", "error");
 			response.put("errorMeaasge", "missing or incorrect type for command");
@@ -135,7 +135,7 @@ public class Command {
 			result=remove(jsonCommand);
 			break;
 		case "share":
-			share(jsonCommand);
+			result=share(jsonCommand);
 			break;
 		case "query":
 			query(jsonCommand);
@@ -392,9 +392,13 @@ public class Command {
 		
 	}
 	
-	
-	public void share(JSONObject cmd){
-		
+	//to be continued
+	public String share(JSONObject cmd){
+		JSONObject response=new JSONObject();
+		String shresStr=cmd.get("resource").toString();
+		JSONObject shresJSON=toJSON(shresStr);
+		Resource shres=new Resource(shresJSON);
+		return response.toJSONString();
 	}
 	public void fetch(JSONObject cmd){
 		
