@@ -1,15 +1,17 @@
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.io.*;
-import java.util.*;
-import java.lang.*;
+import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -67,6 +69,9 @@ public class Command {
 	public void setSecret(String secret){
 		this.secret=secret;
 	}
+	public String getSecret(){
+		return this.secret;
+	}
 	
 	public void setResource(Resource resource){
 		this.resource=resource;
@@ -97,6 +102,7 @@ public class Command {
 			break;
 		case "share":
 			JSONcmd.put("command", "share");
+			JSONcmd.put("secret", this.getSecret());
 			JSONcmd.put("resource", resource.toJSON().toJSONString());
 			break;
 		case "query":
@@ -162,23 +168,41 @@ public class Command {
 		String newresStr=cmd.get("resource").toString();
 		JSONObject newresJSON=toJSON(newresStr);
 		Resource newres=new Resource(newresJSON);
-	//System.out.println(rs.toString());	
+		URI newresUri=newres.getUri();
+	//System.out.println(newresUri.isAbsolute());	
 		if(newres.isEmpty()){
 			response.put("response", "error");
 			response.put("errorMessage", "missing resource");
 			return response.toJSONString();
 		}
+		if(newresUri.toString().equals(""))
+		{
+			//URI must be present
+			response.put("response", "error");
+			response.put("errorMessage", "invalid resource");
+			return response.toJSONString();
+		}
+		else if(newresUri.getScheme()!=null&&newresUri.getScheme().equals("file"))
+		{
+			//URI cannot be a file scheme
+			response.put("response", "error");
+			response.put("errorMessage", "invalid resource");
+			return response.toJSONString();
+		}
+		if(!newresUri.isAbsolute()){
+			//URI must be absolute
+			response.put("response", "error");
+			response.put("errorMessage", "invalid resource");
+			return response.toJSONString();
+		}
+		
 		try{
 			String resFilename=newres.getPK().replaceAll("/", "").replaceAll(":", "")+".json";
 			String filePath=Server.resourceFolder+resFilename;
 			File file=new File("Resource");
-			if(!file.exists())
-				{file.mkdirs();}
-			
-			
-			
-			
-			
+			if(!file.exists()){
+				file.mkdirs();
+				}
 			writeFile(filePath,newresStr);
 			response.put("response", "success");		
 		}
@@ -403,8 +427,58 @@ public class Command {
 	public String share(JSONObject cmd) throws URISyntaxException{
 		JSONObject response=new JSONObject();
 		String shresStr=cmd.get("resource").toString();
+		String shSecret=cmd.get("secret").toString();
 		JSONObject shresJSON=toJSON(shresStr);
 		Resource shres=new Resource(shresJSON);
+		URI shresUri=shres.getUri();
+		if(shres.isEmpty()||shSecret.equals("")){
+			//the resource or secret field was not given or not of the correct type
+			response.put("response", "error");
+			response.put("errorMessage", "missing resource and/or secret");
+			return response.toJSONString();
+		}
+		if(shresUri.toString().equals(""))
+		{
+			//URI must be present
+			response.put("response", "error");
+			response.put("errorMessage", "invalid resource");
+			return response.toJSONString();
+		}
+		else if(shresUri.getScheme()!=null&&!shresUri.getScheme().equals("file"))
+		{
+			//URI must be a file scheme
+			response.put("response", "error");
+			response.put("errorMessage", "invalid resource");
+			return response.toJSONString();
+		}
+		if(!shresUri.isAbsolute()||shresUri.getAuthority()!=null){
+			//URI must be absolute,non-authoritative
+			response.put("response", "error");
+			response.put("errorMessage", "invalid resource");
+			return response.toJSONString();
+		}
+		if(!shSecret.equals(Server.secret)){
+			//secret was incorrect
+			response.put("response", "error");
+			response.put("errorMessage", "incorrect secret");
+			return response.toJSONString();
+		}else{
+			try{
+				String resFilename=shres.getPK().replaceAll("/", "").replaceAll(":", "")+".json";
+				String filePath=Server.resourceFolder+resFilename;
+				File file=new File("Resource");
+				if(!file.exists()){
+					file.mkdirs();
+					}
+				writeFile(filePath,shresStr);
+				response.put("response", "success");		
+			}
+			catch (IOException e) {
+				response.put("response", "error");
+				response.put("errorMessage", "cannot share resource");
+				e.printStackTrace();
+			}
+		}
 		return response.toJSONString();
 	}
 	public String fetch(JSONObject cmd) throws URISyntaxException{

@@ -194,7 +194,7 @@ public class Resource {
 	
 	public boolean isEmpty(){
 		if (this.name.equals("") && this.description.equals("") && this.tags.isEmpty()
-				&& this.uri.equals("") && this.channel.equals("") && this.owner.equals("")
+				&& this.uri.toString().equals("") && this.channel.equals("") && this.owner.equals("")
 				&& this.ezserver == null)
 			return true;
 		else
@@ -208,6 +208,14 @@ public class Resource {
 		String PK="("+owner+","+channel+","+uri+")";
 		return PK;
 	}
-
+    public static void main(String[] args) throws URISyntaxException{
+    	URI testuri=new URI("www.unimelb.edu.au");
+    	File file=new File("Resource");
+    	URI fileuri=file.toURI();
+    	System.out.println(testuri.isAbsolute());
+    	Resource rs=new Resource();
+    	System.out.println(testuri.getScheme());
+    	System.out.println(fileuri.getAuthority());
+    }
 
 }

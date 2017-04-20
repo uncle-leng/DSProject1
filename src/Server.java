@@ -12,7 +12,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 
 public class Server {
-	private String secret  = "rxchfgjvhbjknlm24356784irokfjmnv";
+	//private String secret  = "rxchfgjvhbjknlm24356784irokfjmnv";
+	public static String secret  = "rxchfgjvhbjknlm24356784irokfjmnv";
 	// Declare the port number
 	private static int port = 3000;
 	
