@@ -1,3 +1,5 @@
+import java.net.URISyntaxException;
+
 import javax.sound.sampled.Line;
 
 import org.apache.commons.cli.*;
@@ -5,7 +7,6 @@ import org.json.simple.*;
 
 public class CommandLineHandle {
 	
-	public Command command=new Command();
 	public Options getOptions() {
 		Options options = new Options();
 		options.addOption("channel", true, "channel");
@@ -28,7 +29,8 @@ public class CommandLineHandle {
 		return options;
 	}
 	
-	public String parse(String[] JSONString, Options options) {
+	public String parse(String[] JSONString, Options options) throws URISyntaxException {
+		Command command=new Command();
 		CommandLineParser parser = new DefaultParser();
 		JSONObject result = new JSONObject();
 		//String lineString = "";

@@ -19,17 +19,17 @@ public class Resource {
 	public String owner;
 	public String ezserver;
 	
-	public Resource() {
+	public Resource() throws URISyntaxException {
 		this.name = "";
 		this.description = "";
 		this.tags = new ArrayList<String>();
-		this.uri = null;
+        this.uri = new URI("");
 		this.channel = "";
 		this.owner = "";
 		this.ezserver = null;
 	}
 	
-	public Resource(JSONObject resjson){
+	public Resource(JSONObject resjson) throws URISyntaxException{
 		this.name=resjson.get("name").toString();
 		this.description=resjson.get("description").toString();
 		if(resjson.get("tags").toString().equals("[]"))
@@ -40,7 +40,7 @@ public class Resource {
 			Collections.addAll(tagArrayList, tagArray);
 			this.tags = tagArrayList;
 			}
-		this.uri=URI.create(resjson.get("uri").toString());
+		this.uri=new URI(resjson.get("uri").toString());
 		this.channel=resjson.get("channel").toString();
 		this.owner=resjson.get("owner").toString();
 		if(resjson.get("ezserver")==null)
@@ -59,7 +59,7 @@ public class Resource {
 		this.ezserver = obj.ezserver;
 	}
 	
-	public Resource(String str) throws ParseException {
+	public Resource(String str) throws ParseException, URISyntaxException {
 		JSONParser parser = new JSONParser();
 		JSONObject obj = (JSONObject) parser.parse(str);
 		this.name = obj.get("name").toString();
@@ -72,7 +72,7 @@ public class Resource {
 		    Collections.addAll(tagArrayList, tagArray);
 		    this.tags = tagArrayList;
 		    }
-		this.uri = URI.create(obj.get("uri").toString());
+		this.uri = new URI(obj.get("uri").toString());
 		this.channel = obj.get("channel").toString();
 		this.owner = obj.get("owner").toString();
 		if (obj.get("ezserver") == null) {
@@ -87,7 +87,7 @@ public class Resource {
 
 
 	
-	public void setter(String key, String value) {
+	public void setter(String key, String value) throws URISyntaxException {
 		switch (key) {
 		case "name" : 
 			this.name = value;
@@ -96,7 +96,7 @@ public class Resource {
 			this.description = value;
 			break;
 		case "uri" :
-			this.uri = URI.create(value);
+			this.uri = new URI(value);
 			break;
 		case "channel" : 
 			this.channel = value;
@@ -119,8 +119,9 @@ public class Resource {
 		}
 	}
 	
-	public String getUri() {
-		return uri.toString();
+
+	public URI getUri() {
+		return uri;
 	}
 
 	public String getChannel() {
@@ -131,7 +132,7 @@ public class Resource {
 		return owner;
 	}
 	
-	public Resource fromString(String resourceStr) throws ParseException {
+	public Resource fromString(String resourceStr) throws ParseException, URISyntaxException {
 		Resource resource = new Resource();
 		JSONParser parser = new JSONParser();
 		JSONObject resourceObj = (JSONObject) parser.parse(resourceStr);
@@ -203,16 +204,10 @@ public class Resource {
 	public String getPK(){
 		String owner=this.getOwner().trim();
 		String channel=this.getChannel().trim();
-		String uri=this.getUri().trim();
+		String uri=this.getUri().toString().trim();
 		String PK="("+owner+","+channel+","+uri+")";
 		return PK;
 	}
-	public static void main(String[] args) throws URISyntaxException{
-		File file=new File("Resource");
-		System.out.println(file.toURI());
-		URI testuri=new URI("http://www.unimelb.edu.au");
-		System.out.println(testuri.getHost());
-		System.out.println("");
-	}
+
 
 }
