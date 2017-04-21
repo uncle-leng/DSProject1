@@ -189,13 +189,25 @@ public class Command {
 			response.put("errorMessage", "invalid resource");
 			return response.toJSONString();
 		}
-		if(!newresUri.isAbsolute()){
+		if(!newresUri.isAbsolute()||newres.getOwner().equals("*")){
 			//URI must be absolute
+			//Owner field must not be "*"
 			response.put("response", "error");
 			response.put("errorMessage", "invalid resource");
 			return response.toJSONString();
 		}
-		
+		ArrayList<String> resourcelist=readFile(Server.resourceFolder);
+		if(!resourcelist.isEmpty()){
+			//same channel and URI but different owner is not allowed
+			for(String tempres:resourcelist){
+				System.out.println(tempres);
+				if(newres.isConflict(tempres)){
+					response.put("response", "error");
+					response.put("errorMessage", "cannot publish resource");
+					return response.toJSONString();
+				}
+			}
+		}
 		try{
 			String resFilename=newres.getPK().replaceAll("/", "").replaceAll(":", "")+".json";
 			String filePath=Server.resourceFolder+resFilename;
@@ -244,20 +256,19 @@ public class Command {
 	    fw.close();
 	    out.close();
 	    }
-
-	public ArrayList<String> readFile(String filePath) throws IOException{
+	
+	public ArrayList<String> readFile(String filePath){
 		ArrayList<String> resourcelist=new ArrayList<String>();
 		File file=new File(filePath);
-		if(!file.exists())
-			return null;
-		BufferedReader reader=null;
-		reader=new BufferedReader(new FileReader(file));
-		String string=null;
-		while((string=reader.readLine())!=null){
-			resourcelist.add(string);
+		if(file.exists()&&file.isDirectory()){
+			String[] filelist=file.list();
+			for(String tempfile:filelist){
+				resourcelist.add(tempfile);
+			}
+			return resourcelist;
 		}
-		reader.close();
-		return resourcelist;
+		else
+			return resourcelist;
 		}
 	
 	public String remove(JSONObject cmd) throws URISyntaxException{
@@ -456,6 +467,18 @@ public class Command {
 			response.put("response", "error");
 			response.put("errorMessage", "invalid resource");
 			return response.toJSONString();
+		}
+		ArrayList<String> resourcelist=readFile(Server.resourceFolder);
+		if(!resourcelist.isEmpty()){
+			//same channel and URI but different owner is not allowed
+			for(String tempres:resourcelist){
+				System.out.println(tempres);
+				if(shres.isConflict(tempres)){
+					response.put("response", "error");
+					response.put("errorMessage", "cannot publish resource");
+					return response.toJSONString();
+				}
+			}
 		}
 		if(!shSecret.equals(Server.secret)){
 			//secret was incorrect

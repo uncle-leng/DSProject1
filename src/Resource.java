@@ -208,14 +208,14 @@ public class Resource {
 		String PK="("+owner+","+channel+","+uri+")";
 		return PK;
 	}
-    public static void main(String[] args) throws URISyntaxException{
-    	URI testuri=new URI("www.unimelb.edu.au");
-    	File file=new File("Resource");
-    	URI fileuri=file.toURI();
-    	System.out.println(testuri.isAbsolute());
-    	Resource rs=new Resource();
-    	System.out.println(testuri.getScheme());
-    	System.out.println(fileuri.getAuthority());
-    }
+	
+	public boolean isConflict(String filename){
+		String[] oldkeys=filename.replaceAll("[.][^.]+$", "").split(",");
+		String[] newkeys=this.getPK().replaceAll(":", "").replaceAll("/", "").split(",");
+		if(!oldkeys[0].equals(newkeys[0])&&oldkeys[1].equals(newkeys[1])&&oldkeys[2].equals(newkeys[2]))
+			return true;
+		else
+			return false;
+	}
 
 }
