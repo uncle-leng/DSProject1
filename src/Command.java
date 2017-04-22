@@ -240,6 +240,7 @@ public class Command {
 		return json;
 	}
 	private boolean equal(JSONObject res1,JSONObject res2){
+		//
 		if(res1.get("owner").toString().equals(res2.get("owner").toString())&&
 				res1.get("channel").toString().equals(res2.get("channel").toString())&&
 				res1.get("uri").toString().equals(res2.get("uri").toString())
