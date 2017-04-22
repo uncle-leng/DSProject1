@@ -357,10 +357,12 @@ public class Command {
 	}
 	
 	public boolean intersection(ArrayList<String> l1, ArrayList<String> l2) {
-		List list = new ArrayList(Arrays.asList(new Object[l1.size()])); 
-		Collections.copy(list, l1); 
-        list.retainAll(l2); 
-        if (list.size() == 0) {
+		//List list = new ArrayList(Arrays.asList(new Object[l1.size()])); 
+		//Collections.copy(list, l1); 
+        //list.retainAll(l2); 
+
+		l1.retainAll(l2);
+        if (l1.size() == 0) {
         	return false;
         }
         else {
@@ -370,19 +372,30 @@ public class Command {
 	
 	
 	public boolean queryMatch(Resource resource, JSONObject resourceTemplate) throws ParseException, URISyntaxException {
-		//boolean match = true;
-		//
+		boolean match = false;
 		JSONParser parser = new JSONParser();
 		//JSONObject resourceTemplate = (JSONObject) parser.parse((String)queryJSON.get("resourceTemplate"));
 		Resource rt = new Resource(resourceTemplate);
-		if (! resource.channel.equals(rt.channel)) {return false;}
-		if (( rt.owner.equals("")) || (! resource.owner.equals(rt.owner))) {return false;}
-		if (! intersection(resource.tags, rt.tags)) {return false;}
-		if (! resource.uri.equals(rt.uri)) {return false;}
-		if ((rt.name.equals("") || resource.name.contains(rt.name)) && 
-			(rt.description.equals("") || resource.description.contains(rt.description)) && 
-			((!rt.description.equals("")) || (!rt.name.equals("")))) {return false;}
-		return true;
+		boolean channelMatch = resource.channel.equals(rt.channel);
+		boolean ownerMatch = resource.channel.equals(rt.channel);
+		boolean tagMatch = intersection(resource.tags, rt.tags);
+		boolean uriMatch = resource.uri.equals(rt.uri);
+		boolean nameAndDesMatch = (((rt.name.equals("")) ||  resource.name.contains(rt.name)) ||
+				((rt.description.equals("")) || resource.description.contains(rt.description)) ||
+				((rt.name.equals("")) && rt.description.equals("")));
+		if (channelMatch && ownerMatch && tagMatch && uriMatch && nameAndDesMatch)
+		{
+			match = true;
+		}
+		/*
+		System.out.println(channelMatch);
+		System.out.println(ownerMatch);
+		System.out.println(tagMatch);
+		System.out.println(uriMatch);
+		System.out.println(nameAndDesMatch);
+		System.out.println();
+		*/
+		return match;
 	}
 	
 	public String query(JSONObject cmd) throws ParseException, URISyntaxException{
@@ -390,20 +403,43 @@ public class Command {
 		ArrayList<JSONObject> queryResult = new ArrayList<JSONObject>();
 		ArrayList<JSONObject> finalResult = new ArrayList<JSONObject>();
 		String resultStr = "";
-		String filePath = "./resource";
+		String filePath = "./Resource";
 		System.out.println(cmd.toJSONString());
 		JSONObject resourceObj = (JSONObject) parser.parse(cmd.get("resource").toString());
 		Resource res = new Resource(resourceObj);
 		JSONObject resourceTemplate = res.toJSON();
 		ArrayList<Resource> allResource = getAllResource(filePath);
+		Resource test = new Resource(resourceTemplate);
+		//System.out.println(allResource);
 		try{
-			for (Resource resource : allResource) {
-				if (queryMatch(resource, resourceTemplate)) {
-					resource.setter("owner", "*");
-					queryResult.add(resource.toJSON());
-				}
+			if (resourceObj.get("uri").equals("")) {
+				JSONObject error = new JSONObject();
+				error.put("response", "error");
+				error.put("errorMesage", "invalid resourceTemplate");
+				finalResult.add(error);
 			}
-			if (queryResult.size() != 0) {
+			else if (resourceTemplate.toJSONString().equals("")) {
+				JSONObject error = new JSONObject();
+				error.put("response", "error");
+				error.put("errorMesage", "missing resourceTemplate");
+				finalResult.add(error);
+			}
+			else {
+				for (Resource resource : allResource) {
+					//System.out.println(queryMatch(resource, resourceTemplate));
+					//System.out.println(resourceTemplate);
+					//System.out.println(resource.tags);
+					for (int i = 0; i < resource.tags.size(); i++) {
+						String temp = resource.tags.get(i).replace("[", "").replace("]", "");
+						resource.tags.set(i, temp);
+					}
+	
+					if (queryMatch(resource, resourceTemplate)) {
+						resource.setter("owner", "*");
+						queryResult.add(resource.toJSON());
+					}
+				}
+				//System.out.println(resourceTemplate.get("tags"));
 				JSONObject success = new JSONObject();
 				success.put("response", "success");
 				finalResult.add(success);
@@ -414,23 +450,12 @@ public class Command {
 				resultSize.put("resultSize", Integer.toString(queryResult.size()));
 				finalResult.add(resultSize);
 			}
-			else if (resourceTemplate.toJSONString().equals("")) {
-				JSONObject error = new JSONObject();
-				error.put("response", "error");
-				error.put("errorMesage", "missing resourceTemplate");
-				finalResult.add(error);
-			}
-			}
+		}
 		catch (ParseException e) {
-			
-			JSONObject error = new JSONObject();
-			error.put("response", "error");
-			error.put("errorMesage", "invalid resourceTemplate");
-			finalResult.add(error);
-
+			e.printStackTrace();
 		}
 		for (JSONObject result : finalResult) {
-			resultStr += result.toJSONString();
+			resultStr += result.toJSONString() + "\n";
 		}
 		return resultStr;
 		
