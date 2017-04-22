@@ -1,15 +1,17 @@
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.io.*;
-import java.util.*;
-import java.lang.*;
+import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -72,6 +74,9 @@ public class Command {
 	public void setSecret(String secret){
 		this.secret=secret;
 	}
+	public String getSecret(){
+		return this.secret;
+	}
 	
 	public void setResource(Resource resource){
 		this.resource=resource;
@@ -105,6 +110,7 @@ public class Command {
 			break;
 		case "share":
 			JSONcmd.put("command", "share");
+			JSONcmd.put("secret", this.getSecret());
 			JSONcmd.put("resource", resource.toJSON().toJSONString());
 			break;
 		case "query":
@@ -131,7 +137,7 @@ public class Command {
 		JSONObject response=new JSONObject();
 		JSONParser parser = new JSONParser();
 		JSONObject jsonCommand = (JSONObject) parser.parse(command);
-		String result="";
+		String result="";	
 		if(jsonCommand.isEmpty()){
 			response.put("response", "error");
 			response.put("errorMeaasge", "missing or incorrect type for command");
@@ -145,7 +151,7 @@ public class Command {
 			result=remove(jsonCommand);
 			break;
 		case "share":
-			share(jsonCommand);
+			result=share(jsonCommand);
 			break;
 		case "query":
 			query(jsonCommand);
@@ -170,23 +176,53 @@ public class Command {
 		String newresStr=cmd.get("resource").toString();
 		JSONObject newresJSON=toJSON(newresStr);
 		Resource newres=new Resource(newresJSON);
-	//System.out.println(rs.toString());	
+		URI newresUri=newres.getUri();
+	//System.out.println(newresUri.isAbsolute());	
 		if(newres.isEmpty()){
 			response.put("response", "error");
 			response.put("errorMessage", "missing resource");
 			return response.toJSONString();
 		}
+		if(newresUri.toString().equals(""))
+		{
+			//URI must be present
+			response.put("response", "error");
+			response.put("errorMessage", "invalid resource");
+			return response.toJSONString();
+		}
+		else if(newresUri.getScheme()!=null&&newresUri.getScheme().equals("file"))
+		{
+			//URI cannot be a file scheme
+			response.put("response", "error");
+			response.put("errorMessage", "invalid resource");
+			return response.toJSONString();
+		}
+		if(!newresUri.isAbsolute()||newres.getOwner().equals("*")){
+			//URI must be absolute
+			//Owner field must not be "*"
+			response.put("response", "error");
+			response.put("errorMessage", "invalid resource");
+			return response.toJSONString();
+		}
+		ArrayList<String> resourcelist=readFile(Server.resourceFolder);
+		if(!resourcelist.isEmpty()){
+			//same channel and URI but different owner is not allowed
+			for(String tempres:resourcelist){
+				System.out.println(tempres);
+				if(newres.isConflict(tempres)){
+					response.put("response", "error");
+					response.put("errorMessage", "cannot publish resource");
+					return response.toJSONString();
+				}
+			}
+		}
 		try{
 			String resFilename=newres.getPK().replaceAll("/", "").replaceAll(":", "")+".json";
 			String filePath=Server.resourceFolder+resFilename;
 			File file=new File("Resource");
-			if(!file.exists())
-				{file.mkdirs();}
-			
-			
-			
-			
-			
+			if(!file.exists()){
+				file.mkdirs();
+				}
 			writeFile(filePath,newresStr);
 			response.put("response", "success");		
 		}
@@ -212,6 +248,7 @@ public class Command {
 		return json;
 	}
 	private boolean equal(JSONObject res1,JSONObject res2){
+		//
 		if(res1.get("owner").toString().equals(res2.get("owner").toString())&&
 				res1.get("channel").toString().equals(res2.get("channel").toString())&&
 				res1.get("uri").toString().equals(res2.get("uri").toString())
@@ -228,20 +265,19 @@ public class Command {
 	    fw.close();
 	    out.close();
 	    }
-
-	public ArrayList<String> readFile(String filePath) throws IOException{
+	
+	public ArrayList<String> readFile(String filePath){
 		ArrayList<String> resourcelist=new ArrayList<String>();
 		File file=new File(filePath);
-		if(!file.exists())
-			return null;
-		BufferedReader reader=null;
-		reader=new BufferedReader(new FileReader(file));
-		String string=null;
-		while((string=reader.readLine())!=null){
-			resourcelist.add(string);
+		if(file.exists()&&file.isDirectory()){
+			String[] filelist=file.list();
+			for(String tempfile:filelist){
+				resourcelist.add(tempfile);
+			}
+			return resourcelist;
 		}
-		reader.close();
-		return resourcelist;
+		else
+			return resourcelist;
 		}
 	
 	public String remove(JSONObject cmd) throws URISyntaxException{
@@ -329,10 +365,12 @@ public class Command {
 	}
 	
 	public boolean intersection(ArrayList<String> l1, ArrayList<String> l2) {
-		List list = new ArrayList(Arrays.asList(new Object[l1.size()])); 
-		Collections.copy(list, l1); 
-        list.retainAll(l2); 
-        if (list.size() == 0) {
+		//List list = new ArrayList(Arrays.asList(new Object[l1.size()])); 
+		//Collections.copy(list, l1); 
+        //list.retainAll(l2); 
+
+		l1.retainAll(l2);
+        if (l1.size() == 0) {
         	return false;
         }
         else {
@@ -342,18 +380,30 @@ public class Command {
 	
 	
 	public boolean queryMatch(Resource resource, JSONObject resourceTemplate) throws ParseException, URISyntaxException {
-		//boolean match = true;
+		boolean match = false;
 		JSONParser parser = new JSONParser();
 		//JSONObject resourceTemplate = (JSONObject) parser.parse((String)queryJSON.get("resourceTemplate"));
 		Resource rt = new Resource(resourceTemplate);
-		if (! resource.channel.equals(rt.channel)) {return false;}
-		if (( rt.owner.equals("")) || (! resource.owner.equals(rt.owner))) {return false;}
-		if (! intersection(resource.tags, rt.tags)) {return false;}
-		if (! resource.uri.equals(rt.uri)) {return false;}
-		if ((rt.name.equals("") || resource.name.contains(rt.name)) && 
-			(rt.description.equals("") || resource.description.contains(rt.description)) && 
-			((!rt.description.equals("")) || (!rt.name.equals("")))) {return false;}
-		return true;
+		boolean channelMatch = resource.channel.equals(rt.channel);
+		boolean ownerMatch = resource.channel.equals(rt.channel);
+		boolean tagMatch = intersection(resource.tags, rt.tags);
+		boolean uriMatch = resource.uri.equals(rt.uri);
+		boolean nameAndDesMatch = (((rt.name.equals("")) ||  resource.name.contains(rt.name)) ||
+				((rt.description.equals("")) || resource.description.contains(rt.description)) ||
+				((rt.name.equals("")) && rt.description.equals("")));
+		if (channelMatch && ownerMatch && tagMatch && uriMatch && nameAndDesMatch)
+		{
+			match = true;
+		}
+		/*
+		System.out.println(channelMatch);
+		System.out.println(ownerMatch);
+		System.out.println(tagMatch);
+		System.out.println(uriMatch);
+		System.out.println(nameAndDesMatch);
+		System.out.println();
+		*/
+		return match;
 	}
 	
 	public String query(JSONObject cmd) throws ParseException, URISyntaxException{
@@ -361,20 +411,43 @@ public class Command {
 		ArrayList<JSONObject> queryResult = new ArrayList<JSONObject>();
 		ArrayList<JSONObject> finalResult = new ArrayList<JSONObject>();
 		String resultStr = "";
-		String filePath = "./resource";
+		String filePath = "./Resource";
 		System.out.println(cmd.toJSONString());
 		JSONObject resourceObj = (JSONObject) parser.parse(cmd.get("resource").toString());
 		Resource res = new Resource(resourceObj);
 		JSONObject resourceTemplate = res.toJSON();
 		ArrayList<Resource> allResource = getAllResource(filePath);
+		Resource test = new Resource(resourceTemplate);
+		//System.out.println(allResource);
 		try{
-			for (Resource resource : allResource) {
-				if (queryMatch(resource, resourceTemplate)) {
-					resource.setter("owner", "*");
-					queryResult.add(resource.toJSON());
-				}
+			if (resourceObj.get("uri").equals("")) {
+				JSONObject error = new JSONObject();
+				error.put("response", "error");
+				error.put("errorMesage", "invalid resourceTemplate");
+				finalResult.add(error);
 			}
-			if (queryResult.size() != 0) {
+			else if (resourceTemplate.toJSONString().equals("")) {
+				JSONObject error = new JSONObject();
+				error.put("response", "error");
+				error.put("errorMesage", "missing resourceTemplate");
+				finalResult.add(error);
+			}
+			else {
+				for (Resource resource : allResource) {
+					//System.out.println(queryMatch(resource, resourceTemplate));
+					//System.out.println(resourceTemplate);
+					//System.out.println(resource.tags);
+					for (int i = 0; i < resource.tags.size(); i++) {
+						String temp = resource.tags.get(i).replace("[", "").replace("]", "");
+						resource.tags.set(i, temp);
+					}
+	
+					if (queryMatch(resource, resourceTemplate)) {
+						resource.setter("owner", "*");
+						queryResult.add(resource.toJSON());
+					}
+				}
+				//System.out.println(resourceTemplate.get("tags"));
 				JSONObject success = new JSONObject();
 				success.put("response", "success");
 				finalResult.add(success);
@@ -385,31 +458,86 @@ public class Command {
 				resultSize.put("resultSize", Integer.toString(queryResult.size()));
 				finalResult.add(resultSize);
 			}
-			else if (resourceTemplate.toJSONString().equals("")) {
-				JSONObject error = new JSONObject();
-				error.put("response", "error");
-				error.put("errorMesage", "missing resourceTemplate");
-				finalResult.add(error);
-			}
-			}
+		}
 		catch (ParseException e) {
-			
-			JSONObject error = new JSONObject();
-			error.put("response", "error");
-			error.put("errorMesage", "invalid resourceTemplate");
-			finalResult.add(error);
-
+			e.printStackTrace();
 		}
 		for (JSONObject result : finalResult) {
-			resultStr += result.toJSONString();
+			resultStr += result.toJSONString() + "\n";
 		}
 		return resultStr;
 		
 	}
 	
-	
-	public void share(JSONObject cmd){
-		
+	//to be continued
+	public String share(JSONObject cmd) throws URISyntaxException{
+		JSONObject response=new JSONObject();
+		String shresStr=cmd.get("resource").toString();
+		String shSecret=cmd.get("secret").toString();
+		JSONObject shresJSON=toJSON(shresStr);
+		Resource shres=new Resource(shresJSON);
+		URI shresUri=shres.getUri();
+		if(shres.isEmpty()||shSecret.equals("")){
+			//the resource or secret field was not given or not of the correct type
+			response.put("response", "error");
+			response.put("errorMessage", "missing resource and/or secret");
+			return response.toJSONString();
+		}
+		if(shresUri.toString().equals(""))
+		{
+			//URI must be present
+			response.put("response", "error");
+			response.put("errorMessage", "invalid resource");
+			return response.toJSONString();
+		}
+		else if(shresUri.getScheme()!=null&&!shresUri.getScheme().equals("file"))
+		{
+			//URI must be a file scheme
+			response.put("response", "error");
+			response.put("errorMessage", "invalid resource");
+			return response.toJSONString();
+		}
+		if(!shresUri.isAbsolute()||shresUri.getAuthority()!=null){
+			//URI must be absolute,non-authoritative
+			response.put("response", "error");
+			response.put("errorMessage", "invalid resource");
+			return response.toJSONString();
+		}
+		ArrayList<String> resourcelist=readFile(Server.resourceFolder);
+		if(!resourcelist.isEmpty()){
+			//same channel and URI but different owner is not allowed
+			for(String tempres:resourcelist){
+				System.out.println(tempres);
+				if(shres.isConflict(tempres)){
+					response.put("response", "error");
+					response.put("errorMessage", "cannot publish resource");
+					return response.toJSONString();
+				}
+			}
+		}
+		if(!shSecret.equals(Server.secret)){
+			//secret was incorrect
+			response.put("response", "error");
+			response.put("errorMessage", "incorrect secret");
+			return response.toJSONString();
+		}else{
+			try{
+				String resFilename=shres.getPK().replaceAll("/", "").replaceAll(":", "")+".json";
+				String filePath=Server.resourceFolder+resFilename;
+				File file=new File("Resource");
+				if(!file.exists()){
+					file.mkdirs();
+					}
+				writeFile(filePath,shresStr);
+				response.put("response", "success");		
+			}
+			catch (IOException e) {
+				response.put("response", "error");
+				response.put("errorMessage", "cannot share resource");
+				e.printStackTrace();
+			}
+		}
+		return response.toJSONString();
 	}
 	public String fetch(JSONObject cmd) throws URISyntaxException{
 		this.command = "fetch";

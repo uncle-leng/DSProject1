@@ -1,3 +1,4 @@
+import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -22,7 +23,7 @@ public class Resource {
 		this.name = "";
 		this.description = "";
 		this.tags = new ArrayList<String>();
-		this.uri = new URI("");
+        this.uri = new URI("");
 		this.channel = "";
 		this.owner = "";
 		this.ezserver = null;
@@ -118,6 +119,7 @@ public class Resource {
 		}
 	}
 	
+
 	public URI getUri() {
 		return uri;
 	}
@@ -192,7 +194,7 @@ public class Resource {
 	
 	public boolean isEmpty(){
 		if (this.name.equals("") && this.description.equals("") && this.tags.isEmpty()
-				&& this.uri.equals("") && this.channel.equals("") && this.owner.equals("")
+				&& this.uri.toString().equals("") && this.channel.equals("") && this.owner.equals("")
 				&& this.ezserver == null)
 			return true;
 		else
@@ -200,11 +202,20 @@ public class Resource {
 	}
 	
 	public String getPK(){
-		String owner=this.owner;
-		String channel=this.channel;
-		String uri=this.uri.toString();
+		String owner=this.getOwner().trim();
+		String channel=this.getChannel().trim();
+		String uri=this.getUri().toString().trim();
 		String PK="("+owner+","+channel+","+uri+")";
-		return PK.trim();
+		return PK;
+	}
+	
+	public boolean isConflict(String filename){
+		String[] oldkeys=filename.replaceAll("[.][^.]+$", "").split(",");
+		String[] newkeys=this.getPK().replaceAll(":", "").replaceAll("/", "").split(",");
+		if(!oldkeys[0].equals(newkeys[0])&&oldkeys[1].equals(newkeys[1])&&oldkeys[2].equals(newkeys[2]))
+			return true;
+		else
+			return false;
 	}
 
 }
