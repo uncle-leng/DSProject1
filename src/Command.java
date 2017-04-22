@@ -370,6 +370,7 @@ public class Command {
 	
 	public boolean queryMatch(Resource resource, JSONObject resourceTemplate) throws ParseException, URISyntaxException {
 		//boolean match = true;
+		//
 		JSONParser parser = new JSONParser();
 		//JSONObject resourceTemplate = (JSONObject) parser.parse((String)queryJSON.get("resourceTemplate"));
 		Resource rt = new Resource(resourceTemplate);
