@@ -35,7 +35,8 @@ public class Resource {
 		if(resjson.get("tags").toString().equals("[]"))
 			this.tags=new ArrayList<String>();
 		else{
-			String[] tagArray = resjson.get("tags").toString().split(",");
+			String resStr = resjson.get("tags").toString().replace("[", "").replace("]", "");
+			String[] tagArray = resStr.split(",");
 			ArrayList<String> tagArrayList= new ArrayList<String>();
 			Collections.addAll(tagArrayList, tagArray);
 			this.tags = tagArrayList;
@@ -61,28 +62,42 @@ public class Resource {
 	
 	public Resource(String str) throws ParseException, URISyntaxException {
 		JSONParser parser = new JSONParser();
-		JSONObject obj = (JSONObject) parser.parse(str);
-		this.name = obj.get("name").toString();
-		this.description = obj.get("description").toString();
-		if(obj.get("tags").toString().equals("[]"))
-			this.tags=new ArrayList<String>();
-		else{
-			String[] tagArray = obj.get("tags").toString().split(",");
-		    ArrayList<String> tagArrayList= new ArrayList<String>();
-		    Collections.addAll(tagArrayList, tagArray);
-		    this.tags = tagArrayList;
-		    }
-		this.uri = new URI(obj.get("uri").toString());
-		this.channel = obj.get("channel").toString();
-		this.owner = obj.get("owner").toString();
-		if (obj.get("ezserver") == null) {
+		if (str.equals("")) {
+			this.name = "";
+			this.description = "";
+			this.tags = new ArrayList<String>();
+	        this.uri = new URI("");
+			this.channel = "";
+			this.owner = "";
 			this.ezserver = null;
+			
 		}
-		else {
-			this.ezserver = obj.get("ezserver").toString();
-		}
+		else{
+			//System.out.println(str);
+			//System.out.println();
+			JSONObject obj = (JSONObject) parser.parse(str);
 		
+			this.name = obj.get("name").toString();
+			this.description = obj.get("description").toString();
+			if(obj.get("tags").toString().equals("[]"))
+				this.tags=new ArrayList<String>();
+			else{
+				String[] tagArray = obj.get("tags").toString().split(",");
+				ArrayList<String> tagArrayList= new ArrayList<String>();
+				Collections.addAll(tagArrayList, tagArray);
+				this.tags = tagArrayList;
+				}
+			this.uri = new URI(obj.get("uri").toString());
+			this.channel = obj.get("channel").toString();
+			this.owner = obj.get("owner").toString();
+			if (obj.get("ezserver") == null) {
+				this.ezserver = null;
+			}
+			else {
+				this.ezserver = obj.get("ezserver").toString();
+			}
 		
+			}
 	}
 
 

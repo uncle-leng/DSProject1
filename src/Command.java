@@ -146,7 +146,7 @@ public class Command {
 			result=share(jsonCommand);
 			break;
 		case "query":
-			query(jsonCommand);
+			result=query(jsonCommand);
 			break;
 		case "fetch":
 			result=fetch(jsonCommand);
@@ -322,7 +322,7 @@ public class Command {
 		//Resource resource = new Resource();
 		try {
 			
-			if (JSONTXT.isFile() && JSONTXT.exists()) {
+		if (JSONTXT.isFile() && JSONTXT.exists() && JSONTXT.length() != 0) {
 				InputStreamReader read = new InputStreamReader(
                 new FileInputStream(JSONTXT));
                 BufferedReader bufferedReader = new BufferedReader(read);
@@ -340,6 +340,7 @@ public class Command {
 		catch (Exception e) {
 			e.printStackTrace();
 		}
+		//System.out.println(JSONStr);
 		Resource resource = new Resource(JSONStr);
 		return resource;
 	}
@@ -349,10 +350,20 @@ public class Command {
 		File f = null;
 		f = new File(filePath);
 		File[] files = f.listFiles();
-		for (File file : files) {
-			Resource fileResource = readJSON(file);
+		String[] filesStr = f.list();
+		System.out.println(filesStr.length);
+		if (filesStr.length == 1) {
+			Resource resource = new Resource();
+			allResource.add(resource);
+			//System.out.println(allResource);
+			return allResource;
+		}
+		
+		for (int i = 0; i < files.length; i++) {
+			Resource fileResource = readJSON(files[i]);
 			allResource.add(fileResource);
 		}
+		//System.out.println(allResource);
 		return allResource;
 	}
 	
@@ -387,14 +398,14 @@ public class Command {
 		{
 			match = true;
 		}
-		/*
+		
 		System.out.println(channelMatch);
 		System.out.println(ownerMatch);
 		System.out.println(tagMatch);
 		System.out.println(uriMatch);
 		System.out.println(nameAndDesMatch);
 		System.out.println();
-		*/
+		
 		return match;
 	}
 	
@@ -410,9 +421,9 @@ public class Command {
 		JSONObject resourceTemplate = res.toJSON();
 		ArrayList<Resource> allResource = getAllResource(filePath);
 		Resource test = new Resource(resourceTemplate);
-		//System.out.println(allResource);
+		System.out.println(allResource);
 		try{
-			if (resourceObj.get("uri").equals("")) {
+			if (resourceObj.get("uri").toString().equals("")) {
 				JSONObject error = new JSONObject();
 				error.put("response", "error");
 				error.put("errorMesage", "invalid resourceTemplate");
@@ -433,7 +444,8 @@ public class Command {
 						String temp = resource.tags.get(i).replace("[", "").replace("]", "");
 						resource.tags.set(i, temp);
 					}
-	
+					
+					//System.out.println(resource.tags);
 					if (queryMatch(resource, resourceTemplate)) {
 						resource.setter("owner", "*");
 						queryResult.add(resource.toJSON());
