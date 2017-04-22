@@ -24,6 +24,7 @@ public class Client {
 		    DataOutputStream output = new DataOutputStream(socket.
 		    		getOutputStream());
 		    String outCommand = commandLine.parse(args, options);
+		    //System.out.println(outCommand);
 		    
 	    	output.writeUTF(outCommand);
 	    	output.flush();
@@ -31,6 +32,7 @@ public class Client {
 		    while(true){
                         if(input.available() > 0) {
                             String message = input.readUTF();
+                            //System.out.println("incoming:");
                             System.out.println(message);
                         }
 	    		

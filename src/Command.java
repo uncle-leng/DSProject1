@@ -54,7 +54,8 @@ public class Command {
 		secret="";
 		resource=new Resource();
 		relay=false;
-		serverList=null;
+		//serverList=new ArrayList<String>();
+		serverList = new JSONArray();
 		//resourceTemplate=new Resource().toJSON();
 		resourceTemplate = new Resource();
 	}
@@ -81,8 +82,17 @@ public class Command {
 		this.relay=relay;
 	}
 	
-	public void addServer(String server){
-		this.serverList.add(server);
+	public void addServer(String servers){
+		JSONArray serversArray = new JSONArray();
+		String server[] = servers.replaceAll("\"", "").split(",");
+		for (String s : server) {
+			JSONObject obj = new JSONObject();
+			obj.put("hostname",s);
+			serversArray.add(obj);
+		}
+		this.serverList = serversArray;
+		//this.serverList.add(servers);
+		//this.serverlist = serverlist;
 	}
 	
 //	public void setResourceTemplate(JSONArray resourceTemplate){
@@ -113,6 +123,10 @@ public class Command {
 			JSONcmd.put("command", "fetch");
 			JSONcmd.put("resource", resourceTemplate.toJSON().toJSONString());
 			break;
+		case "exchange":
+			JSONcmd.put("command", "exchange");
+			JSONcmd.put("serverList", serverList.toJSONString());
+			break;
 		default:break;
 		}
 		return JSONcmd;
@@ -130,6 +144,7 @@ public class Command {
 		JSONParser parser = new JSONParser();
 		JSONObject jsonCommand = (JSONObject) parser.parse(command);
 		String result="";	
+		System.out.println(jsonCommand);
 		if(jsonCommand.isEmpty()){
 			response.put("response", "error");
 			response.put("errorMeaasge", "missing or incorrect type for command");
@@ -152,7 +167,8 @@ public class Command {
 			result=fetch(jsonCommand);
 			break;
 		case "exchange":
-			exchange(jsonCommand);
+			//System.out.println("exchangeexchange");
+			result=exchange(jsonCommand);
 			break;
 		default:
 			response.put("response", "error");
@@ -594,7 +610,10 @@ public class Command {
 		return response.toJSONString();
 		
 	}
-	public void exchange(JSONObject cmd){
+	public String exchange(JSONObject cmd){
+		//System.out.println(cmd.toJSONString());
+		String serverStr = cmd.get("serverList").toString();
+		return "sss";
 		
 	}
 
