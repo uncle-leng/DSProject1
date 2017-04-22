@@ -29,51 +29,98 @@ public class CommandLineHandle {
 		return options;
 	}
 	
-	public String parse(String[] JSONString, Options options) throws URISyntaxException {
+	public JSONObject parse(String[] JSONString, Options options) throws URISyntaxException {
 		Command command=new Command();
 		CommandLineParser parser = new DefaultParser();
 		JSONObject result = new JSONObject();
 		//String lineString = "";
 		try {
 			CommandLine line = parser.parse(options, JSONString);
-			//if (line.hasOption("channel")) {result.put("channel", line.getOptionValue("channel"));}
-			if (line.hasOption("channel")) {command.resource.setter("channel", line.getOptionValue("channel"));}
-			//if (line.hasOption("description")) {result.put("description", line.getOptionValue("description"));}
-			if (line.hasOption("description")) {command.resource.setter("description", line.getOptionValue("description"));}
-			if (line.hasOption("host")) {result.put("host", line.getOptionValue("host"));}//to  be improved
-			//if (line.hasOption("name")) {result.put("name", line.getOptionValue("name"));}
-			if (line.hasOption("name")) {command.resource.setter("name", line.getOptionValue("name"));}
-			//if (line.hasOption("owner")) {result.put("owner", line.getOptionValue("owner"));}
-			if (line.hasOption("owner")) {command.resource.setter("owner", line.getOptionValue("owner"));}
-			if (line.hasOption("port")) {result.put("port", line.getOptionValue("port"));}//to be improved
-			//if (line.hasOption("secret")) {result.put("secret", line.getOptionValue("secret"));}
-			if (line.hasOption("secret")) {command.setSecret(line.getOptionValue("secret"));}
-			//if (line.hasOption("servers")) {result.put("servers", line.getOptionValue("servers"));}
-			if (line.hasOption("servers")) {command.addServer(line.getOptionValue("servers"));}//to be improved
-			//if (line.hasOption("tags")) {result.put("tags", line.getOptionValue("tags"));}
-			if (line.hasOption("tags")) {command.resource.setter("tags", line.getOptionValue("tags"));}
-			//if (line.hasOption("uri")) {result.put("uri", line.getOptionValue("uri"));}
-			if (line.hasOption("uri")) {command.resource.setter("uri", line.getOptionValue("uri"));}
-			if (line.hasOption("debug")) {result.put("debug", "");}
-			//if (line.hasOption("exchange")) {result.put("command", "EXCHANGE");}
-			if (line.hasOption("exchange")) {command.setCommand("exchange");}
-			//if (line.hasOption("fetch")) {result.put("command", "FETCH");}
-			if (line.hasOption("fetch")) {command.setCommand("fetch");}
-			//if (line.hasOption("publish")) {result.put("command", "PUBLISH");}
-			if (line.hasOption("publish")) {command.setCommand("publish");}
-			//if (line.hasOption("query")) {result.put("command", "QUERY");}
-			if (line.hasOption("query")) {command.setCommand("query");}
-			//if (line.hasOption("remove")) {result.put("command", "REMOVE");}
-			if (line.hasOption("remove")) {command.setCommand("remove");}
-			//if (line.hasOption("share")) {result.put("command", "SHARE");}
-			if (line.hasOption("share")) {command.setCommand("share");}
+//			//if (line.hasOption("channel")) {result.put("channel", line.getOptionValue("channel"));}
+//			if (line.hasOption("channel")) {command.resource.setter("channel", line.getOptionValue("channel"));}
+//			//if (line.hasOption("description")) {result.put("description", line.getOptionValue("description"));}
+//			if (line.hasOption("description")) {command.resource.setter("description", line.getOptionValue("description"));}
+//			if (line.hasOption("host")) {result.put("host", line.getOptionValue("host"));}//to  be improved
+//			//if (line.hasOption("name")) {result.put("name", line.getOptionValue("name"));}
+//			if (line.hasOption("name")) {command.resource.setter("name", line.getOptionValue("name"));}
+//			//if (line.hasOption("owner")) {result.put("owner", line.getOptionValue("owner"));}
+//			if (line.hasOption("owner")) {command.resource.setter("owner", line.getOptionValue("owner"));}
+//			if (line.hasOption("port")) {result.put("port", line.getOptionValue("port"));}//to be improved
+//			//if (line.hasOption("secret")) {result.put("secret", line.getOptionValue("secret"));}
+//			if (line.hasOption("secret")) {command.setSecret(line.getOptionValue("secret"));}
+//			//if (line.hasOption("servers")) {result.put("servers", line.getOptionValue("servers"));}
+//			if (line.hasOption("servers")) {command.addServer(line.getOptionValue("servers"));}//to be improved
+//			//if (line.hasOption("tags")) {result.put("tags", line.getOptionValue("tags"));}
+//			if (line.hasOption("tags")) {command.resource.setter("tags", line.getOptionValue("tags"));}
+//			//if (line.hasOption("uri")) {result.put("uri", line.getOptionValue("uri"));}
+//			if (line.hasOption("uri")) {command.resource.setter("uri", line.getOptionValue("uri"));}
+//			if (line.hasOption("debug")) {result.put("debug", "");}
+//			//if (line.hasOption("exchange")) {result.put("command", "EXCHANGE");}
+//			if (line.hasOption("exchange")) {command.setCommand("exchange");}
+//			//if (line.hasOption("fetch")) {result.put("command", "FETCH");}
+//			if (line.hasOption("fetch")) {command.setCommand("fetch");}
+//			//if (line.hasOption("publish")) {result.put("command", "PUBLISH");}
+//			if (line.hasOption("publish")) {command.setCommand("publish");}
+//			//if (line.hasOption("query")) {result.put("command", "QUERY");}
+//			if (line.hasOption("query")) {command.setCommand("query");}
+//			//if (line.hasOption("remove")) {result.put("command", "REMOVE");}
+//			if (line.hasOption("remove")) {command.setCommand("remove");}
+//			//if (line.hasOption("share")) {result.put("command", "SHARE");}
+//			if (line.hasOption("share")) {command.setCommand("share");}
+			
+			//debug mode
+			if (line.hasOption("debug")) {
+				command.setDebug();
+				//result.
+			}
 
+			if (line.hasOption("publish") 
+					|| line.hasOption("remove") 
+					|| line.hasOption("share")){
+				if (line.hasOption("publish")) {command.setCommand("publish");}
+				if (line.hasOption("remove")) {command.setCommand("remove");}
+				if (line.hasOption("share")) {command.setCommand("share");}
+				
+				//resource
+				if (line.hasOption("channel")) {command.resource.setter("channel", line.getOptionValue("channel"));}
+				if (line.hasOption("description")) {command.resource.setter("description", line.getOptionValue("description"));}
+				if (line.hasOption("name")) {command.resource.setter("name", line.getOptionValue("name"));}
+				if (line.hasOption("owner")) {command.resource.setter("owner", line.getOptionValue("owner"));}
+				if (line.hasOption("tags")) {command.resource.setter("tags", line.getOptionValue("tags"));}
+				if (line.hasOption("uri")) {command.resource.setter("uri", line.getOptionValue("uri"));}
+				if (line.hasOption("ezserver")) {command.resource.setter("ezserver", line.getOptionValue("ezserver"));}
+			
+				if (line.hasOption("secret")) {command.setSecret(line.getOptionValue("secret"));}
+			}
+			else if(line.hasOption("query") 
+					|| line.hasOption("fetch")){
+				if (line.hasOption("fetch")) {command.setCommand("fetch");}
+				if (line.hasOption("query")) {command.setCommand("query");}
+				
+				//resourceTemplate
+				if (line.hasOption("channel")) {command.resourceTemplate.setter("channel", line.getOptionValue("channel"));}
+				if (line.hasOption("description")) {command.resourceTemplate.setter("description", line.getOptionValue("description"));}
+				if (line.hasOption("name")) {command.resourceTemplate.setter("name", line.getOptionValue("name"));}
+				if (line.hasOption("owner")) {command.resourceTemplate.setter("owner", line.getOptionValue("owner"));}
+				if (line.hasOption("tags")) {command.resourceTemplate.setter("tags", line.getOptionValue("tags"));}
+				if (line.hasOption("uri")) {command.resourceTemplate.setter("uri", line.getOptionValue("uri"));}
+				if (line.hasOption("ezserver")) {command.resourceTemplate.setter("ezserver", line.getOptionValue("ezserver"));}
+				
+				
+			}
+			else if(line.hasOption("exchange")){
+				command.setCommand("exchange");
+				//if (line.hasOption("serverList")) {command.resource.setter("ezserver", line.getOptionValue("ezserver"));}
+				if (line.hasOption("servers")) {command.addServer(line.getOptionValue("servers"));}//to be improved
+			}
+			//else if(){	}
+			else System.out.println("invalid command");
 		}
 		catch (Exception e) {
 			e.printStackTrace();
 		}
 		//return result.toString();
-		return command.toJSON().toString();
+		return command.toJSON();
 	}
 	
 	

@@ -39,13 +39,17 @@ import org.json.simple.parser.ParseException;
          ���汣��       ����BUG 
 */  
 public class Command {
+	
 	public String command;
 	public String secret;
 	public Resource resource;
 	public boolean relay;
 	public JSONArray serverList;
 	public Resource resourceTemplate;
+	//public Serverlist serverList;
 	//public JSONObject resourceTemplate;
+	
+	public boolean debug;
 	
 	public Command() throws URISyntaxException{
 		command="";
@@ -55,6 +59,7 @@ public class Command {
 		serverList=null;
 		//resourceTemplate=new Resource().toJSON();
 		resourceTemplate = new Resource();
+		debug = false;
 	}
 	
 	public Command(String command){
@@ -78,6 +83,9 @@ public class Command {
 	
 	public void addServer(String server){
 		this.serverList.add(server);
+	}
+	public void setDebug(){
+		this.debug = true;
 	}
 	
 //	public void setResourceTemplate(JSONArray resourceTemplate){
@@ -105,7 +113,7 @@ public class Command {
 			break;
 		case "fetch":
 			JSONcmd.put("command", "fetch");
-			JSONcmd.put("resource", resourceTemplate.toJSON().toJSONString());
+			JSONcmd.put("resourceTemplate", resourceTemplate.toJSON().toJSONString());
 			break;
 		default:break;
 		}
@@ -404,13 +412,14 @@ public class Command {
 		
 	}
 	public String fetch(JSONObject cmd) throws URISyntaxException{
+		this.command = "fetch";
 		JSONObject response=new JSONObject();
 //		if(cmd.get("resourceTemplate") == null){
 //			response.put("response", "error");
 //			response.put("errorMessage", "missing resourceTemplate");
 //			return response.toJSONString();
 //		} 
-		String ftresStr=cmd.get("resource").toString();
+		String ftresStr=cmd.get("resourceTemplate").toString();
 		JSONObject ftresJSON=toJSON(ftresStr);
 		Resource ftres=new Resource(ftresJSON);
 		String ftfilename=ftres.getPK().replaceAll(":", "").replaceAll("/", "")+".json";
