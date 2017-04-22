@@ -144,7 +144,7 @@ public class Command {
 		JSONParser parser = new JSONParser();
 		JSONObject jsonCommand = (JSONObject) parser.parse(command);
 		String result="";	
-		System.out.println(jsonCommand);
+		//System.out.println(jsonCommand);
 		if(jsonCommand.isEmpty()){
 			response.put("response", "error");
 			response.put("errorMeaasge", "missing or incorrect type for command");
@@ -613,6 +613,7 @@ public class Command {
 	public String exchange(JSONObject cmd){
 		//System.out.println(cmd.toJSONString());
 		String serverStr = cmd.get("serverList").toString();
+		System.out.println(serverStr);
 		return "sss";
 		
 	}

@@ -65,7 +65,7 @@ public class Server {
 		    System.out.println(input.readUTF());
 		    //System.out.println();
 		    String response=command.parseCommand(input.readUTF());
-		    System.out.println("hhhh");
+		    //System.out.println("hhhh");
 		    
 		   System.out.println(response);
 		    output.writeUTF("Server: Hi Client "+counter+" !!!");
