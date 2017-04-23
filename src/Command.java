@@ -42,13 +42,17 @@ import org.json.simple.parser.ParseException;
          ���汣��       ����BUG 
 */  
 public class Command {
+	
 	public String command;
 	public String secret;
 	public Resource resource;
 	public boolean relay;
 	public JSONArray serverList;
 	public Resource resourceTemplate;
+	//public Serverlist serverList;
 	//public JSONObject resourceTemplate;
+	
+	public boolean debug;
 	
 	public Command() throws URISyntaxException{
 		command="";
@@ -59,6 +63,7 @@ public class Command {
 		serverList = new JSONArray();
 		//resourceTemplate=new Resource().toJSON();
 		resourceTemplate = new Resource();
+		debug = false;
 	}
 	
 	public Command(String command){
@@ -83,6 +88,7 @@ public class Command {
 		this.relay=relay;
 	}
 	
+
 	public void addServer(String servers){
 		JSONArray serversArray = new JSONArray();
 		String server[] = servers.replaceAll("\"", "").split(",");
@@ -95,6 +101,11 @@ public class Command {
 		this.serverList = serversArray;
 		//this.serverList.add(servers);
 		//this.serverlist = serverlist;
+
+	}
+	public void setDebug(){
+		this.debug = true;
+
 	}
 	
 //	public void setResourceTemplate(JSONArray resourceTemplate){
@@ -128,6 +139,7 @@ public class Command {
 		case "exchange":
 			JSONcmd.put("command", "exchange");
 			JSONcmd.put("serverList", serverList.toJSONString());
+			//JSONcmd.put("resourceTemplate", resourceTemplate.toJSON().toJSONString());
 			break;
 		default:break;
 		}
@@ -146,7 +158,7 @@ public class Command {
 		JSONParser parser = new JSONParser();
 		JSONObject jsonCommand = (JSONObject) parser.parse(command);
 		String result="";	
-		//System.out.println(jsonCommand);
+
 		if(jsonCommand.isEmpty()){
 			response.put("response", "error");
 			response.put("errorMeaasge", "missing or incorrect type for command");
@@ -416,14 +428,18 @@ public class Command {
 		{
 			match = true;
 		}
-		
+
+	
+
+		/*
 		System.out.println(channelMatch);
 		System.out.println(ownerMatch);
 		System.out.println(tagMatch);
 		System.out.println(uriMatch);
 		System.out.println(nameAndDesMatch);
 		System.out.println();
-		
+		*/
+
 		return match;
 	}
 	
@@ -439,9 +455,14 @@ public class Command {
 		JSONObject resourceTemplate = res.toJSON();
 		ArrayList<Resource> allResource = getAllResource(filePath);
 		Resource test = new Resource(resourceTemplate);
-		System.out.println(allResource);
+
+		//System.out.println(allResource);
+
 		try{
+
 			if (resourceObj.get("uri").toString().equals("")) {
+
+
 				JSONObject error = new JSONObject();
 				error.put("response", "error");
 				error.put("errorMesage", "invalid resourceTemplate");
@@ -462,8 +483,9 @@ public class Command {
 						String temp = resource.tags.get(i).replace("[", "").replace("]", "");
 						resource.tags.set(i, temp);
 					}
-					
-					//System.out.println(resource.tags);
+
+	
+
 					if (queryMatch(resource, resourceTemplate)) {
 						resource.setter("owner", "*");
 						queryResult.add(resource.toJSON());
@@ -562,13 +584,14 @@ public class Command {
 		return response.toJSONString();
 	}
 	public String fetch(JSONObject cmd) throws URISyntaxException{
+		this.command = "fetch";
 		JSONObject response=new JSONObject();
 //		if(cmd.get("resourceTemplate") == null){
 //			response.put("response", "error");
 //			response.put("errorMessage", "missing resourceTemplate");
 //			return response.toJSONString();
 //		} 
-		String ftresStr=cmd.get("resource").toString();
+		String ftresStr=cmd.get("resourceTemplate").toString();
 		JSONObject ftresJSON=toJSON(ftresStr);
 		Resource ftres=new Resource(ftresJSON);
 		String ftfilename=ftres.getPK().replaceAll(":", "").replaceAll("/", "")+".json";

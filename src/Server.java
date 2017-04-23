@@ -2,10 +2,13 @@
 import java.io.DataInputStream;
 import java.util.*;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 
 import javax.net.ServerSocketFactory;
 
@@ -96,6 +99,25 @@ public class Server {
 		    
 		    output.writeUTF("Server: Hi Client "+counter+" !!!");
 		    output.writeUTF(response);
+		    if(command.command.equals("fetch")){
+				//File f = new File(command.resourceTemplate.uri.toString());
+				File f = new File("/Users/HuJP/Desktop/eclipseworkspace/DSProject1/serverfile/sauron.jpg");
+				if(f.exists()){
+				RandomAccessFile byteFile = new RandomAccessFile(f,"r");
+				System.out.println(f.length());
+
+				byte[] sendingBuffer = new byte[1024*1024];
+				int num;
+				// While there are still bytes to send..
+				while((num = byteFile.read(sendingBuffer)) > 0){
+					System.out.println(num);
+					output.write(Arrays.copyOf(sendingBuffer, num));
+				}
+				byteFile.close();
+			}
+		    }
+		    //output.writeUTF("over");
+		   
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (ParseException e) {
