@@ -33,6 +33,7 @@ public class Client {
                         if(input.available() > 0) {
                             String message = input.readUTF();
                             //System.out.println("incoming:");
+                            //System.out.println(message);
                             System.out.println(message);
                         }
 	    		

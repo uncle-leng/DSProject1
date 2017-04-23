@@ -661,10 +661,10 @@ public class Command {
 			for (int i = 0; i < serverArray.size(); i++) {
 				String ip = serverArray.get(i).toString().split(",")[0].split(":")[1].replaceAll("\"", "");
 				String port = serverArray.get(i).toString().split(",")[1].split(":")[1].replace("}", "").replaceAll("\"", "");
-				System.out.println(ip);
-				System.out.println(validIP(ip));
-				System.out.println(validPort(port));
-				System.out.println(port);
+				//System.out.println(ip);
+				//System.out.println(validIP(ip));
+				//System.out.println(validPort(port));
+				//System.out.println(port);
 				if (!validIP(ip) || !validPort(port)) {
 					JSONObject errorMsg = new JSONObject();
 					errorMsg.put("response", "error");

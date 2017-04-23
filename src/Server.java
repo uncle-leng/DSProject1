@@ -1,5 +1,6 @@
 	
 import java.io.DataInputStream;
+import java.util.*;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -24,6 +25,7 @@ public class Server {
 	public static String resourceFolder="./Resource/";
 	//filename which stores resource information
 	public static void main(String[] args) {
+		
 		ServerSocketFactory factory = ServerSocketFactory.getDefault();
 		try(ServerSocket server = factory.createServerSocket(port)){
 			System.out.println("Waiting for client connection..");
@@ -57,6 +59,7 @@ public class Server {
 	private static void serveClient(Socket client) throws URISyntaxException{
 		Command command=new Command();
 		JSONParser parser = new JSONParser();
+		ArrayList<String> serverList = new ArrayList<String>();
 		
 		try(Socket clientSocket = client){
 			// Input stream
@@ -65,16 +68,29 @@ public class Server {
 			// Output Stream
 		    DataOutputStream output = new DataOutputStream(clientSocket.
 		    		getOutputStream());
-		    System.out.println(input.readUTF());
+		   System.out.println(input.readUTF());
 		    //System.out.println();
 		    String response=command.parseCommand(input.readUTF());
-		    
+		    //System.out.println(response);
+		    JSONObject responseObj = (JSONObject) parser.parse(response);
 		    JSONObject inputObj = (JSONObject) parser.parse(input.readUTF());
 		    System.out.println(inputObj.get("command"));
+		    if (inputObj.get("command").toString().equals("exchange") && responseObj.get("response").toString().equals("success")) {
+		    	String serverListStr = inputObj.get("serverList").toString();
+		    	JSONArray serverArray = (JSONArray) parser.parse(serverListStr);
+		    	for (int i = 0; i < serverArray.size(); i++) {
+		    		String ip = serverArray.get(i).toString().split(",")[0].split(":")[1].replaceAll("\"", "");
+					String port = serverArray.get(i).toString().split(",")[1].split(":")[1].replace("}", "").replaceAll("\"", "");
+					String serverRecord = ip + ":" + port;
+					serverList.add(serverRecord);
+		    	}
+		    	System.out.println(serverList);
+		    	
+		    }
 		    
-		    //System.out.println("hhhh");
 		    
-		   System.out.println(response);
+		   //System.out.println("hhhh");
+		    
 		    output.writeUTF("Server: Hi Client "+counter+" !!!");
 		    output.writeUTF(response);
 		} catch (IOException e) {
