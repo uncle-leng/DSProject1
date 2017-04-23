@@ -90,7 +90,7 @@ public class Server {
 					String serverRecord = ip + ":" + port;
 					serverList.add(serverRecord);
 		    	}
-		    	System.out.println(serverList);
+		    	//System.out.println(serverList);
 		    	
 		    }
 		    
