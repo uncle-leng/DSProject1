@@ -232,5 +232,9 @@ public class Resource {
 		else
 			return false;
 	}
+	public static void main(String[] args) throws URISyntaxException{
+		Resource rs=new Resource();
+		
+	}
 
 }

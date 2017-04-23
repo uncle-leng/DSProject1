@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -48,6 +49,7 @@ public class Command {
 	public JSONArray serverList;
 	public Resource resourceTemplate;
 	//public JSONObject resourceTemplate;
+	public boolean debug;
 	
 	public Command() throws URISyntaxException{
 		command="";
@@ -57,6 +59,7 @@ public class Command {
 		serverList=null;
 		//resourceTemplate=new Resource().toJSON();
 		resourceTemplate = new Resource();
+		debug=false;
 	}
 	
 	public Command(String command){
@@ -68,6 +71,9 @@ public class Command {
 	}
 	public void setSecret(String secret){
 		this.secret=secret;
+	}
+	public void setDebug(boolean debug){
+		this.debug=debug;
 	}
 	public String getSecret(){
 		return this.secret;
@@ -197,10 +203,13 @@ public class Command {
 			return response.toJSONString();
 		}
 		ArrayList<String> resourcelist=readFile(Server.resourceFolder);
+		if(resourcelist.size()==1&&!resourcelist.get(0).endsWith(".json")){
+			resourcelist.remove(0);
+		}
 		if(!resourcelist.isEmpty()){
 			//same channel and URI but different owner is not allowed
 			for(String tempres:resourcelist){
-				System.out.println(tempres);
+		    //System.out.println(tempres);
 				if(newres.isConflict(tempres)){
 					response.put("response", "error");
 					response.put("errorMessage", "cannot publish resource");
@@ -511,7 +520,7 @@ public class Command {
 		if(!resourcelist.isEmpty()){
 			//same channel and URI but different owner is not allowed
 			for(String tempres:resourcelist){
-				System.out.println(tempres);
+				//System.out.println(tempres);
 				if(shres.isConflict(tempres)){
 					response.put("response", "error");
 					response.put("errorMessage", "cannot publish resource");

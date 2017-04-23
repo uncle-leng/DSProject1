@@ -54,7 +54,7 @@ public class CommandLineHandle {
 			if (line.hasOption("tags")) {command.resource.setter("tags", line.getOptionValue("tags"));}
 			//if (line.hasOption("uri")) {result.put("uri", line.getOptionValue("uri"));}
 			if (line.hasOption("uri")) {command.resource.setter("uri", line.getOptionValue("uri"));}
-			if (line.hasOption("debug")) {result.put("debug", "");}
+			if (line.hasOption("debug")) {command.setDebug(true);;}
 			//if (line.hasOption("exchange")) {result.put("command", "EXCHANGE");}
 			if (line.hasOption("exchange")) {command.setCommand("exchange");}
 			//if (line.hasOption("fetch")) {result.put("command", "FETCH");}
@@ -75,7 +75,18 @@ public class CommandLineHandle {
 		//return result.toString();
 		return command.toJSON().toString();
 	}
-	
+	public boolean debug(String[] cmdString, Options options){
+		CommandLineParser parser = new DefaultParser();
+		CommandLine line;
+		try {
+			line = parser.parse(options, cmdString);
+			return line.hasOption("debug");
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return false;
+	}
 	
 	
 }

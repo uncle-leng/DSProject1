@@ -1,12 +1,15 @@
 
 import java.io.DataInputStream;
+
 import org.apache.commons.cli.*;
 import org.json.simple.*;
+
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
+import java.util.logging.Logger;
 
 public class Client {
 	
@@ -23,14 +26,20 @@ public class Client {
 					getInputStream());
 		    DataOutputStream output = new DataOutputStream(socket.
 		    		getOutputStream());
+		  
 		    String outCommand = commandLine.parse(args, options);
-		    
 	    	output.writeUTF(outCommand);
 	    	output.flush();
 	    	
 		    while(true){
                         if(input.available() > 0) {
                             String message = input.readUTF();
+                            if(commandLine.debug(args,options)){
+                		    	final Logger logger=Logger.getLogger("Client");
+                		    	logger.info("setting debug on");
+                		    	logger.fine("SENT:"+outCommand);
+                		    	logger.fine("RECEIVED:"+message);
+                		    }
                             System.out.println(message);
                         }
 	    		
