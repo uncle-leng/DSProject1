@@ -545,30 +545,37 @@ public class Command {
 		{
 			//URI must be present
 			response.put("response", "error");
-			response.put("errorMessage", "invalid resource");
+			response.put("errorMessage", "invalid resource1");
 			return response.toJSONString();
 		}
 		else if(shresUri.getScheme()!=null&&!shresUri.getScheme().equals("file"))
 		{
 			//URI must be a file scheme
 			response.put("response", "error");
-			response.put("errorMessage", "invalid resource");
+			response.put("errorMessage", "invalid resource2");
 			return response.toJSONString();
 		}
 		if(!shresUri.isAbsolute()||shresUri.getAuthority()!=null){
 			//URI must be absolute,non-authoritative
 			response.put("response", "error");
-			response.put("errorMessage", "invalid resource");
+			response.put("errorMessage", "invalid resource3");
 			return response.toJSONString();
 		}
 		ArrayList<String> resourcelist=readFile(Server.resourceFolder);
+		if(resourcelist.size()!=0){
+			for(int i=0;i<resourcelist.size();++i){
+				if(!resourcelist.get(i).endsWith(".json")){
+					resourcelist.remove(i);
+				}
+			}
+		}
 		if(!resourcelist.isEmpty()){
 			//same channel and URI but different owner is not allowed
 			for(String tempres:resourcelist){
 				//System.out.println(tempres);
 				if(shres.isConflict(tempres)){
 					response.put("response", "error");
-					response.put("errorMessage", "cannot publish resource");
+					response.put("errorMessage", "cannot share resource");
 					return response.toJSONString();
 				}
 			}
@@ -586,7 +593,8 @@ public class Command {
 				if(!file.exists()){
 					file.mkdirs();
 					}
-				File sharefile=new File(shres.uri.toString());
+				File sharefile=new File(shres.uri);
+		//System.out.println(sharefile.toURI().toString());
 				if(sharefile.exists()){
 					long size=sharefile.length();
 					shresJSON.put("resourceSize", size);
