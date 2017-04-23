@@ -1,4 +1,5 @@
 import java.io.BufferedReader;
+import java.util.regex.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
@@ -42,12 +43,14 @@ import org.json.simple.parser.ParseException;
          ���汣��       ����BUG 
 */  
 public class Command {
+	
 	public String command;
 	public String secret;
 	public Resource resource;
 	public boolean relay;
 	public JSONArray serverList;
 	public Resource resourceTemplate;
+	//public Serverlist serverList;
 	//public JSONObject resourceTemplate;
 	public boolean debug;
 	
@@ -56,10 +59,11 @@ public class Command {
 		secret="";
 		resource=new Resource();
 		relay=false;
-		serverList=null;
+		//serverList=new ArrayList<String>();
+		serverList = new JSONArray();
 		//resourceTemplate=new Resource().toJSON();
 		resourceTemplate = new Resource();
-		debug=false;
+		//debug=false;
 	}
 	
 	public Command(String command){
@@ -72,9 +76,9 @@ public class Command {
 	public void setSecret(String secret){
 		this.secret=secret;
 	}
-	public void setDebug(boolean debug){
+	/*public void setDebug(boolean debug){
 		this.debug=debug;
-	}
+	}*/
 	public String getSecret(){
 		return this.secret;
 	}
@@ -87,8 +91,24 @@ public class Command {
 		this.relay=relay;
 	}
 	
-	public void addServer(String server){
-		this.serverList.add(server);
+
+	public void addServer(String servers){
+		JSONArray serversArray = new JSONArray();
+		String server[] = servers.replaceAll("\"", "").split(",");
+		for (String s : server) {
+			JSONObject obj = new JSONObject();
+			obj.put("hostname",s.split(":")[0]);
+			obj.put("port",s.split(":")[1]);
+			serversArray.add(obj);
+		}
+		this.serverList = serversArray;
+		//this.serverList.add(servers);
+		//this.serverlist = serverlist;
+
+	}
+	public void setDebug(){
+		this.debug = true;
+
 	}
 	
 //	public void setResourceTemplate(JSONArray resourceTemplate){
@@ -119,6 +139,11 @@ public class Command {
 			JSONcmd.put("command", "fetch");
 			JSONcmd.put("resource", resourceTemplate.toJSON().toJSONString());
 			break;
+		case "exchange":
+			JSONcmd.put("command", "exchange");
+			JSONcmd.put("serverList", serverList.toJSONString());
+			//JSONcmd.put("resourceTemplate", resourceTemplate.toJSON().toJSONString());
+			break;
 		default:break;
 		}
 		return JSONcmd;
@@ -136,6 +161,7 @@ public class Command {
 		JSONParser parser = new JSONParser();
 		JSONObject jsonCommand = (JSONObject) parser.parse(command);
 		String result="";	
+
 		if(jsonCommand.isEmpty()){
 			response.put("response", "error");
 			response.put("errorMeaasge", "missing or incorrect type for command");
@@ -158,7 +184,8 @@ public class Command {
 			result=fetch(jsonCommand);
 			break;
 		case "exchange":
-			exchange(jsonCommand);
+			//System.out.println("exchangeexchange");
+			result=exchange(jsonCommand);
 			break;
 		default:
 			response.put("response", "error");
@@ -205,6 +232,7 @@ public class Command {
 		ArrayList<String> resourcelist=readFile(Server.resourceFolder);
 		if(resourcelist.size()==1&&!resourcelist.get(0).endsWith(".json")){
 			resourcelist.remove(0);
+			//resolve bug in macos
 		}
 		if(!resourcelist.isEmpty()){
 			//same channel and URI but different owner is not allowed
@@ -407,14 +435,18 @@ public class Command {
 		{
 			match = true;
 		}
-		
+
+	
+
+		/*
 		System.out.println(channelMatch);
 		System.out.println(ownerMatch);
 		System.out.println(tagMatch);
 		System.out.println(uriMatch);
 		System.out.println(nameAndDesMatch);
 		System.out.println();
-		
+		*/
+
 		return match;
 	}
 	
@@ -430,9 +462,14 @@ public class Command {
 		JSONObject resourceTemplate = res.toJSON();
 		ArrayList<Resource> allResource = getAllResource(filePath);
 		Resource test = new Resource(resourceTemplate);
-		System.out.println(allResource);
+
+		//System.out.println(allResource);
+
 		try{
+
 			if (resourceObj.get("uri").toString().equals("")) {
+
+
 				JSONObject error = new JSONObject();
 				error.put("response", "error");
 				error.put("errorMesage", "invalid resourceTemplate");
@@ -453,8 +490,9 @@ public class Command {
 						String temp = resource.tags.get(i).replace("[", "").replace("]", "");
 						resource.tags.set(i, temp);
 					}
-					
-					//System.out.println(resource.tags);
+
+	
+
 					if (queryMatch(resource, resourceTemplate)) {
 						resource.setter("owner", "*");
 						queryResult.add(resource.toJSON());
@@ -553,13 +591,14 @@ public class Command {
 		return response.toJSONString();
 	}
 	public String fetch(JSONObject cmd) throws URISyntaxException{
+		this.command = "fetch";
 		JSONObject response=new JSONObject();
 //		if(cmd.get("resourceTemplate") == null){
 //			response.put("response", "error");
 //			response.put("errorMessage", "missing resourceTemplate");
 //			return response.toJSONString();
 //		} 
-		String ftresStr=cmd.get("resource").toString();
+		String ftresStr=cmd.get("resourceTemplate").toString();
 		JSONObject ftresJSON=toJSON(ftresStr);
 		Resource ftres=new Resource(ftresJSON);
 		String ftfilename=ftres.getPK().replaceAll(":", "").replaceAll("/", "")+".json";
@@ -603,7 +642,78 @@ public class Command {
 		return response.toJSONString();
 		
 	}
-	public void exchange(JSONObject cmd){
+	
+	public boolean validIP(String ip) {
+		/*
+		String regex = "(((2[0-4]d)|(25[0-5]))|(1d{2})|([1-9]d)|(d))[.](((2[0-4]d)|(25[0-5]))|(1d{2})|([1-9]d)|(d))[.]"
+	            + "(((2[0-4]d)|(25[0-5]))|(1d{2})|([1-9]d)|(d))[.](((2[0-4]d)|(25[0-5]))|(1d{2})|([1-9]d)|(d))";
+	        Pattern p = Pattern.compile(regex);
+	        Matcher m = p.matcher(ip);
+	        return m.matches();
+	    */
+		String[] ipArray = ip.split(".");
+		for (String eachIP : ipArray) {
+			if (Integer.parseInt(eachIP) < 0 || Integer.parseInt(eachIP) > 255) {
+				return false;
+			}
+		}
+		return true;
+		
+	}
+	
+	public boolean validPort(String port) {
+		int portNumber = Integer.parseInt(port);
+		if (portNumber > 0 && portNumber < 65535) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	
+
+	
+	public String exchange(JSONObject cmd){
+		try {
+			//System.out.println(cmd.toJSONString());
+			JSONParser parser = new JSONParser();
+			//String serverStr = cmd.get("serverList").toString().replace("[", "").replace("]", "");
+			//System.out.println(serverStr);
+			String serverStr = cmd.get("serverList").toString();
+			JSONArray serverArray = (JSONArray) parser.parse(serverStr);
+			System.out.println(serverArray);
+			if (serverArray.size() == 0) {
+				JSONObject errorMsg = new JSONObject();
+				errorMsg.put("response", "error");
+				errorMsg.put("errorMessage", "missing of invalid server list");
+				return errorMsg.toJSONString();
+			}
+			for (int i = 0; i < serverArray.size(); i++) {
+				String ip = serverArray.get(i).toString().split(",")[0].split(":")[1].replaceAll("\"", "");
+				String port = serverArray.get(i).toString().split(",")[1].split(":")[1].replace("}", "").replaceAll("\"", "");
+				//System.out.println(ip);
+				//System.out.println(validIP(ip));
+				//System.out.println(validPort(port));
+				//System.out.println(port);
+				if (!validIP(ip) || !validPort(port)) {
+					JSONObject errorMsg = new JSONObject();
+					errorMsg.put("response", "error");
+					errorMsg.put("errorMessage", "missing resourceTemplate");
+					return errorMsg.toJSONString();
+				}
+			
+		}
+		}
+		catch (ParseException e) {
+			JSONObject errorMsg = new JSONObject();
+			errorMsg.put("response", "error");
+			errorMsg.put("errorMessage", "missing of invalid server list");
+			return errorMsg.toJSONString();
+		}
+		
+		JSONObject successMsg = new JSONObject();
+		successMsg.put("response", "success");
+		return successMsg.toJSONString();
 		
 	}
 
