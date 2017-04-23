@@ -130,7 +130,7 @@ public class Command {
 			break;
 		case "query":
 			JSONcmd.put("command", "query");
-			JSONcmd.put("resource", resource.toJSON().toJSONString());
+			JSONcmd.put("resource", resourceTemplate.toJSON().toJSONString());
 			break;
 		case "fetch":
 			JSONcmd.put("command", "fetch");
@@ -450,7 +450,7 @@ public class Command {
 		String resultStr = "";
 		String filePath = "./Resource";
 		System.out.println(cmd.toJSONString());
-		JSONObject resourceObj = (JSONObject) parser.parse(cmd.get("resource").toString());
+		JSONObject resourceObj = (JSONObject) parser.parse(cmd.get("resourceTemplate").toString());
 		Resource res = new Resource(resourceObj);
 		JSONObject resourceTemplate = res.toJSON();
 		ArrayList<Resource> allResource = getAllResource(filePath);
@@ -637,31 +637,32 @@ public class Command {
 	}
 	
 	public boolean validIP(String ip) {
-		/*
-		String regex = "(((2[0-4]d)|(25[0-5]))|(1d{2})|([1-9]d)|(d))[.](((2[0-4]d)|(25[0-5]))|(1d{2})|([1-9]d)|(d))[.]"
-	            + "(((2[0-4]d)|(25[0-5]))|(1d{2})|([1-9]d)|(d))[.](((2[0-4]d)|(25[0-5]))|(1d{2})|([1-9]d)|(d))";
-	        Pattern p = Pattern.compile(regex);
-	        Matcher m = p.matcher(ip);
-	        return m.matches();
-	    */
-		String[] ipArray = ip.split(".");
-		for (String eachIP : ipArray) {
-			if (Integer.parseInt(eachIP) < 0 || Integer.parseInt(eachIP) > 255) {
-				return false;
+		try{
+			String[] ipArray = ip.split(".");
+			for (String eachIP : ipArray) {
+				if (Integer.parseInt(eachIP) < 0 || Integer.parseInt(eachIP) > 255) {
+					return false;
+				}
 			}
+			}
+		catch (NumberFormatException e) {
+			return false;
 		}
 		return true;
-		
 	}
 	
 	public boolean validPort(String port) {
-		int portNumber = Integer.parseInt(port);
-		if (portNumber > 0 && portNumber < 65535) {
+		try{
+			int portNumber = Integer.parseInt(port);
+			if (portNumber > 0 && portNumber < 65535) {
 			return true;
-		}
-		else {
+			}
+			}
+		catch (NumberFormatException e) {
 			return false;
 		}
+		return false;
+
 	}
 	
 
