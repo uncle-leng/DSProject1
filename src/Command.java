@@ -1,4 +1,5 @@
 import java.io.BufferedReader;
+import java.util.regex.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
@@ -87,7 +88,8 @@ public class Command {
 		String server[] = servers.replaceAll("\"", "").split(",");
 		for (String s : server) {
 			JSONObject obj = new JSONObject();
-			obj.put("hostname",s);
+			obj.put("hostname",s.split(":")[0]);
+			obj.put("port",s.split(":")[1]);
 			serversArray.add(obj);
 		}
 		this.serverList = serversArray;
@@ -610,11 +612,78 @@ public class Command {
 		return response.toJSONString();
 		
 	}
+	
+	public boolean validIP(String ip) {
+		/*
+		String regex = "(((2[0-4]d)|(25[0-5]))|(1d{2})|([1-9]d)|(d))[.](((2[0-4]d)|(25[0-5]))|(1d{2})|([1-9]d)|(d))[.]"
+	            + "(((2[0-4]d)|(25[0-5]))|(1d{2})|([1-9]d)|(d))[.](((2[0-4]d)|(25[0-5]))|(1d{2})|([1-9]d)|(d))";
+	        Pattern p = Pattern.compile(regex);
+	        Matcher m = p.matcher(ip);
+	        return m.matches();
+	    */
+		String[] ipArray = ip.split(".");
+		for (String eachIP : ipArray) {
+			if (Integer.parseInt(eachIP) < 0 || Integer.parseInt(eachIP) > 255) {
+				return false;
+			}
+		}
+		return true;
+		
+	}
+	
+	public boolean validPort(String port) {
+		int portNumber = Integer.parseInt(port);
+		if (portNumber > 0 && portNumber < 65535) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	
+
+	
 	public String exchange(JSONObject cmd){
-		//System.out.println(cmd.toJSONString());
-		String serverStr = cmd.get("serverList").toString();
-		System.out.println(serverStr);
-		return "sss";
+		try {
+			//System.out.println(cmd.toJSONString());
+			JSONParser parser = new JSONParser();
+			//String serverStr = cmd.get("serverList").toString().replace("[", "").replace("]", "");
+			//System.out.println(serverStr);
+			String serverStr = cmd.get("serverList").toString();
+			JSONArray serverArray = (JSONArray) parser.parse(serverStr);
+			System.out.println(serverArray);
+			if (serverArray.size() == 0) {
+				JSONObject errorMsg = new JSONObject();
+				errorMsg.put("response", "error");
+				errorMsg.put("errorMessage", "missing of invalid server list");
+				return errorMsg.toJSONString();
+			}
+			for (int i = 0; i < serverArray.size(); i++) {
+				String ip = serverArray.get(i).toString().split(",")[0].split(":")[1].replaceAll("\"", "");
+				String port = serverArray.get(i).toString().split(",")[1].split(":")[1].replace("}", "").replaceAll("\"", "");
+				System.out.println(ip);
+				System.out.println(validIP(ip));
+				System.out.println(validPort(port));
+				System.out.println(port);
+				if (!validIP(ip) || !validPort(port)) {
+					JSONObject errorMsg = new JSONObject();
+					errorMsg.put("response", "error");
+					errorMsg.put("errorMessage", "missing resourceTemplate");
+					return errorMsg.toJSONString();
+				}
+			
+		}
+		}
+		catch (ParseException e) {
+			JSONObject errorMsg = new JSONObject();
+			errorMsg.put("response", "error");
+			errorMsg.put("errorMessage", "missing of invalid server list");
+			return errorMsg.toJSONString();
+		}
+		
+		JSONObject successMsg = new JSONObject();
+		successMsg.put("response", "success");
+		return successMsg.toJSONString();
 		
 	}
 

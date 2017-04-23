@@ -9,8 +9,9 @@ import java.net.URISyntaxException;
 import javax.net.ServerSocketFactory;
 
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-
+import org.json.simple.*;
 public class Server {
 	//private String secret  = "rxchfgjvhbjknlm24356784irokfjmnv";
 	public static String secret  = "rxchfgjvhbjknlm24356784irokfjmnv";
@@ -55,6 +56,8 @@ public class Server {
 	
 	private static void serveClient(Socket client) throws URISyntaxException{
 		Command command=new Command();
+		JSONParser parser = new JSONParser();
+		
 		try(Socket clientSocket = client){
 			// Input stream
 			DataInputStream input = new DataInputStream(clientSocket.
@@ -65,6 +68,10 @@ public class Server {
 		    System.out.println(input.readUTF());
 		    //System.out.println();
 		    String response=command.parseCommand(input.readUTF());
+		    
+		    JSONObject inputObj = (JSONObject) parser.parse(input.readUTF());
+		    System.out.println(inputObj.get("command"));
+		    
 		    //System.out.println("hhhh");
 		    
 		   System.out.println(response);
