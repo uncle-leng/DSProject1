@@ -230,10 +230,17 @@ public class Command {
 			return response.toJSONString();
 		}
 		ArrayList<String> resourcelist=readFile(Server.resourceFolder);
-		if(resourcelist.size()==1&&!resourcelist.get(0).endsWith(".json")){
+		if(resourcelist.size()!=0){
+			for(int i=0;i<resourcelist.size();++i){
+				if(!resourcelist.get(i).endsWith(".json")){
+					resourcelist.remove(i);
+				}
+			}
+		}
+		/*if(resourcelist.size()==1&&!resourcelist.get(0).endsWith(".json")){
 			resourcelist.remove(0);
 			//resolve bug in macos
-		}
+		}*/
 		if(!resourcelist.isEmpty()){
 			//same channel and URI but different owner is not allowed
 			for(String tempres:resourcelist){
