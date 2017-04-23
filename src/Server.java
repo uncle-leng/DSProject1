@@ -60,7 +60,6 @@ public class Server {
 	}
 	
 	private static void serveClient(Socket client) throws URISyntaxException{
-		//System.out.println("hahahahahaha");
 		Command command=new Command();
 		JSONParser parser = new JSONParser();
 		ArrayList<String> serverList = new ArrayList<String>();
@@ -72,7 +71,6 @@ public class Server {
 			// Output Stream
 		    DataOutputStream output = new DataOutputStream(clientSocket.
 		    		getOutputStream());
-		    //System.out.println("hahahahahaha");
 		    String inputUTF = input.readUTF();
 		   String response=command.parseCommand(inputUTF);
 		  // System.out.println(input.readUTF());

@@ -450,14 +450,14 @@ public class Command {
 
 	
 
-		
+		/*
 		System.out.println(channelMatch);
 		System.out.println(ownerMatch);
 		System.out.println(tagMatch);
 		System.out.println(uriMatch);
 		System.out.println(nameAndDesMatch);
 		System.out.println();
-		
+		*/
 
 		return match;
 	}
@@ -476,7 +476,6 @@ public class Command {
 		ArrayList<Resource> allResource = getAllResource(filePath);
 		Resource test = new Resource(resourceTemplate);
 
-		System.out.println(test);
 
 		try{
 
