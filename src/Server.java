@@ -28,7 +28,7 @@ public class Server {
 		
 		ServerSocketFactory factory = ServerSocketFactory.getDefault();
 		try(ServerSocket server = factory.createServerSocket(port)){
-			System.out.println("Waiting for client connection..");
+			System.out.println("Server waiting for client connection..");
 			
 			// Wait for connections.
 			while(true){
@@ -57,6 +57,7 @@ public class Server {
 	}
 	
 	private static void serveClient(Socket client) throws URISyntaxException{
+		//System.out.println("hahahahahaha");
 		Command command=new Command();
 		JSONParser parser = new JSONParser();
 		ArrayList<String> serverList = new ArrayList<String>();
@@ -68,10 +69,12 @@ public class Server {
 			// Output Stream
 		    DataOutputStream output = new DataOutputStream(clientSocket.
 		    		getOutputStream());
+		    //System.out.println("hahahahahaha");
+		   String response=command.parseCommand(input.readUTF());
 		   System.out.println(input.readUTF());
-		    //System.out.println();
-		    String response=command.parseCommand(input.readUTF());
+		    
 		    //System.out.println(response);
+		    System.out.println("hahahahahaha");
 		    JSONObject responseObj = (JSONObject) parser.parse(response);
 		    JSONObject inputObj = (JSONObject) parser.parse(input.readUTF());
 		    System.out.println(inputObj.get("command"));
@@ -89,7 +92,7 @@ public class Server {
 		    }
 		    
 		    
-		   //System.out.println("hhhh");
+		  System.out.println("hhhh");
 		    
 		    output.writeUTF("Server: Hi Client "+counter+" !!!");
 		    output.writeUTF(response);
