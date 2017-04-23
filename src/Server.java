@@ -77,16 +77,19 @@ public class Server {
 		   String response=command.parseCommand(inputUTF);
 		  // System.out.println(input.readUTF());
 		    
-		    //System.out.println(response);
-		    //System.out.println("hahahahahaha");
-		    JSONObject responseObj = (JSONObject) parser.parse(response);
+		    System.out.println(response);
+		    
+		    
 		    //System.out.println(responseObj.get("response"));
 		    
 		    
 		    
-		    
+		    JSONObject responseObj = new JSONObject();
 		    JSONObject inputObj = (JSONObject) parser.parse(inputUTF);
-		    System.out.println(inputObj.get("command"));
+		    if (! inputObj.get("command").toString().equals("query")) {
+		    	responseObj = (JSONObject) parser.parse(response);
+		    }
+		    //System.out.println(inputObj.get("command"));
 		    if (inputObj.get("command").toString().equals("exchange") && responseObj.get("response").toString().equals("success")) {
 		    	String serverListStr = inputObj.get("serverList").toString();
 		    	JSONArray serverArray = (JSONArray) parser.parse(serverListStr);
@@ -96,7 +99,7 @@ public class Server {
 					String serverRecord = ip + ":" + port;
 					serverList.add(serverRecord);
 		    	}
-		    	System.out.println(serverList);
+		    	//System.out.println(serverList);
 		    	
 		    }
 		    

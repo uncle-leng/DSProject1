@@ -133,7 +133,7 @@ public class Command {
 			break;
 		case "query":
 			JSONcmd.put("command", "query");
-			JSONcmd.put("resource", resourceTemplate.toJSON().toJSONString());
+			JSONcmd.put("resourceTemplate", resourceTemplate.toJSON().toJSONString());
 			break;
 		case "fetch":
 			JSONcmd.put("command", "fetch");
@@ -395,20 +395,25 @@ public class Command {
 		f = new File(filePath);
 		File[] files = f.listFiles();
 		String[] filesStr = f.list();
-		System.out.println(filesStr.length);
+		//System.out.println(filesStr.length);
+		/*
 		if (filesStr.length == 1) {
 			Resource resource = new Resource();
 			allResource.add(resource);
 			//System.out.println(allResource);
 			return allResource;
 		}
+		*/
 		
 		for (int i = 0; i < files.length; i++) {
-			Resource fileResource = readJSON(files[i]);
-			allResource.add(fileResource);
+			if (files[i].getName().endsWith(".json")){
+				Resource fileResource = readJSON(files[i]);
+				allResource.add(fileResource);
+			}
 		}
-		//System.out.println(allResource);
+		System.out.println(allResource);
 		return allResource;
+		
 	}
 	
 	public boolean intersection(ArrayList<String> l1, ArrayList<String> l2) {
@@ -445,14 +450,14 @@ public class Command {
 
 	
 
-		/*
+		
 		System.out.println(channelMatch);
 		System.out.println(ownerMatch);
 		System.out.println(tagMatch);
 		System.out.println(uriMatch);
 		System.out.println(nameAndDesMatch);
 		System.out.println();
-		*/
+		
 
 		return match;
 	}
@@ -467,10 +472,11 @@ public class Command {
 		JSONObject resourceObj = (JSONObject) parser.parse(cmd.get("resourceTemplate").toString());
 		Resource res = new Resource(resourceObj);
 		JSONObject resourceTemplate = res.toJSON();
+		//System.out.println(resourceTemplate);
 		ArrayList<Resource> allResource = getAllResource(filePath);
 		Resource test = new Resource(resourceTemplate);
 
-		//System.out.println(allResource);
+		System.out.println(test);
 
 		try{
 

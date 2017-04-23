@@ -73,7 +73,7 @@ public class Resource {
 			
 		}
 		else{
-			//System.out.println(str);
+			System.out.println(str);
 			//System.out.println();
 			JSONObject obj = (JSONObject) parser.parse(str);
 		
