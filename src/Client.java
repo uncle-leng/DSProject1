@@ -1,9 +1,5 @@
 
 import java.io.DataInputStream;
-
-import org.apache.commons.cli.*;
-import org.json.simple.*;
-
 import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
@@ -11,8 +7,13 @@ import java.io.RandomAccessFile;
 import java.net.Socket;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
-import java.util.logging.Logger;
 import java.util.Arrays;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.apache.commons.cli.Options;
+import org.json.simple.JSONObject;
 
 
 public class Client {
@@ -41,20 +42,29 @@ public class Client {
 	    	output.writeUTF(out);
 	    	output.flush();
 	    	
+	    	Logger logger=Logger.getLogger("Client");
+	    	logger.setLevel(Level.ALL);
+	    	ConsoleHandler consoleHandler=new ConsoleHandler();
+	    	consoleHandler.setLevel(Level.ALL);
+	    	logger.addHandler(consoleHandler);
+	    	if(commandLine.debug(args,options)){
+		    	
+		    	logger.info("setting debug on");
+		    	logger.fine("SENT:"+outCommand);
+		    }
+	    	
 		    while(true){
                         if(input.available() > 0) {
 
                             String message = input.readUTF();
-                            if(commandLine.debug(args,options)){
-                		    	final Logger logger=Logger.getLogger("Client");
-                		    	logger.info("setting debug on");
-                		    	logger.fine("SENT:"+outCommand);
-                		    	logger.fine("RECEIVED:"+message);
-                		    }
+                            
                             //System.out.println("incoming:");
                             //System.out.println(message);
                             System.out.println(message);
                             message = input.readUTF();
+                            if(commandLine.debug(args,options)){
+                            	logger.fine("RECEIVED:"+message);
+                		    }
                             System.out.println(message);
                             if(outCommand.get("command").toString().equals("fetch")){
         						String fileName = "/Users/HuJP/Desktop/eclipseworkspace/DSProject1/clientfile/testfile.jpg";
