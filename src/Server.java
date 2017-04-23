@@ -73,13 +73,19 @@ public class Server {
 		    DataOutputStream output = new DataOutputStream(clientSocket.
 		    		getOutputStream());
 		    //System.out.println("hahahahahaha");
-		   String response=command.parseCommand(input.readUTF());
-		   System.out.println(input.readUTF());
+		    String inputUTF = input.readUTF();
+		   String response=command.parseCommand(inputUTF);
+		  // System.out.println(input.readUTF());
 		    
 		    //System.out.println(response);
-		    System.out.println("hahahahahaha");
+		    //System.out.println("hahahahahaha");
 		    JSONObject responseObj = (JSONObject) parser.parse(response);
-		    JSONObject inputObj = (JSONObject) parser.parse(input.readUTF());
+		    //System.out.println(responseObj.get("response"));
+		    
+		    
+		    
+		    
+		    JSONObject inputObj = (JSONObject) parser.parse(inputUTF);
 		    System.out.println(inputObj.get("command"));
 		    if (inputObj.get("command").toString().equals("exchange") && responseObj.get("response").toString().equals("success")) {
 		    	String serverListStr = inputObj.get("serverList").toString();
@@ -90,12 +96,12 @@ public class Server {
 					String serverRecord = ip + ":" + port;
 					serverList.add(serverRecord);
 		    	}
-		    	//System.out.println(serverList);
+		    	System.out.println(serverList);
 		    	
 		    }
 		    
 		    
-		  System.out.println("hhhh");
+		  //System.out.println("hhhh");
 		    
 		    output.writeUTF("Server: Hi Client "+counter+" !!!");
 		    output.writeUTF(response);
@@ -120,9 +126,12 @@ public class Server {
 		   
 		} catch (IOException e) {
 			e.printStackTrace();
+			//System.out.println("IOException");
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block
+			
 			e.printStackTrace();
+			//System.out.println("ParseException");
 		}
 	}
 
