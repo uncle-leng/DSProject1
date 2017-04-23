@@ -586,8 +586,18 @@ public class Command {
 				if(!file.exists()){
 					file.mkdirs();
 					}
-				writeFile(filePath,shresStr);
-				response.put("response", "success");		
+				File sharefile=new File(shres.uri.toString());
+				if(sharefile.exists()){
+					long size=sharefile.length();
+					shresJSON.put("resourceSize", size);
+				
+				writeFile(filePath,shresJSON.toJSONString());
+				response.put("response", "success");
+				}
+				else{
+					response.put("response", "error");
+					response.put("errorMessage", "invalid resource");
+				}
 			}
 			catch (IOException e) {
 				response.put("response", "error");
