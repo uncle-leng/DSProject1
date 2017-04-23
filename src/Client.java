@@ -1,7 +1,9 @@
 
 import java.io.DataInputStream;
+
 import org.apache.commons.cli.*;
 import org.json.simple.*;
+
 import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
@@ -9,7 +11,9 @@ import java.io.RandomAccessFile;
 import java.net.Socket;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
+import java.util.logging.Logger;
 import java.util.Arrays;
+
 
 public class Client {
 	
@@ -35,13 +39,18 @@ public class Client {
 		    JSONObject outCommand = commandLine.parse(args, options);
 		    String out = outCommand.toString();
 	    	output.writeUTF(out);
-
 	    	output.flush();
 	    	
 		    while(true){
                         if(input.available() > 0) {
 
                             String message = input.readUTF();
+                            if(commandLine.debug(args,options)){
+                		    	final Logger logger=Logger.getLogger("Client");
+                		    	logger.info("setting debug on");
+                		    	logger.fine("SENT:"+outCommand);
+                		    	logger.fine("RECEIVED:"+message);
+                		    }
                             //System.out.println("incoming:");
                             //System.out.println(message);
                             System.out.println(message);

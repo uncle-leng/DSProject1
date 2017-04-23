@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -51,7 +52,6 @@ public class Command {
 	public Resource resourceTemplate;
 	//public Serverlist serverList;
 	//public JSONObject resourceTemplate;
-	
 	public boolean debug;
 	
 	public Command() throws URISyntaxException{
@@ -63,7 +63,7 @@ public class Command {
 		serverList = new JSONArray();
 		//resourceTemplate=new Resource().toJSON();
 		resourceTemplate = new Resource();
-		debug = false;
+		//debug=false;
 	}
 	
 	public Command(String command){
@@ -76,6 +76,9 @@ public class Command {
 	public void setSecret(String secret){
 		this.secret=secret;
 	}
+	/*public void setDebug(boolean debug){
+		this.debug=debug;
+	}*/
 	public String getSecret(){
 		return this.secret;
 	}
@@ -227,10 +230,21 @@ public class Command {
 			return response.toJSONString();
 		}
 		ArrayList<String> resourcelist=readFile(Server.resourceFolder);
+		if(resourcelist.size()!=0){
+			for(int i=0;i<resourcelist.size();++i){
+				if(!resourcelist.get(i).endsWith(".json")){
+					resourcelist.remove(i);
+				}
+			}
+		}
+		/*if(resourcelist.size()==1&&!resourcelist.get(0).endsWith(".json")){
+			resourcelist.remove(0);
+			//resolve bug in macos
+		}*/
 		if(!resourcelist.isEmpty()){
 			//same channel and URI but different owner is not allowed
 			for(String tempres:resourcelist){
-				System.out.println(tempres);
+		    //System.out.println(tempres);
 				if(newres.isConflict(tempres)){
 					response.put("response", "error");
 					response.put("errorMessage", "cannot publish resource");
@@ -531,30 +545,37 @@ public class Command {
 		{
 			//URI must be present
 			response.put("response", "error");
-			response.put("errorMessage", "invalid resource");
+			response.put("errorMessage", "invalid resource1");
 			return response.toJSONString();
 		}
 		else if(shresUri.getScheme()!=null&&!shresUri.getScheme().equals("file"))
 		{
 			//URI must be a file scheme
 			response.put("response", "error");
-			response.put("errorMessage", "invalid resource");
+			response.put("errorMessage", "invalid resource2");
 			return response.toJSONString();
 		}
 		if(!shresUri.isAbsolute()||shresUri.getAuthority()!=null){
 			//URI must be absolute,non-authoritative
 			response.put("response", "error");
-			response.put("errorMessage", "invalid resource");
+			response.put("errorMessage", "invalid resource3");
 			return response.toJSONString();
 		}
 		ArrayList<String> resourcelist=readFile(Server.resourceFolder);
+		if(resourcelist.size()!=0){
+			for(int i=0;i<resourcelist.size();++i){
+				if(!resourcelist.get(i).endsWith(".json")){
+					resourcelist.remove(i);
+				}
+			}
+		}
 		if(!resourcelist.isEmpty()){
 			//same channel and URI but different owner is not allowed
 			for(String tempres:resourcelist){
-				System.out.println(tempres);
+				//System.out.println(tempres);
 				if(shres.isConflict(tempres)){
 					response.put("response", "error");
-					response.put("errorMessage", "cannot publish resource");
+					response.put("errorMessage", "cannot share resource");
 					return response.toJSONString();
 				}
 			}
@@ -572,8 +593,19 @@ public class Command {
 				if(!file.exists()){
 					file.mkdirs();
 					}
-				writeFile(filePath,shresStr);
-				response.put("response", "success");		
+				File sharefile=new File(shres.uri);
+		//System.out.println(sharefile.toURI().toString());
+				if(sharefile.exists()){
+					long size=sharefile.length();
+					shresJSON.put("resourceSize", size);
+				
+				writeFile(filePath,shresJSON.toJSONString());
+				response.put("response", "success");
+				}
+				else{
+					response.put("response", "error");
+					response.put("errorMessage", "invalid resource");
+				}
 			}
 			catch (IOException e) {
 				response.put("response", "error");

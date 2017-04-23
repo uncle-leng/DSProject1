@@ -122,7 +122,18 @@ public class CommandLineHandle {
 		//return result.toString();
 		return command.toJSON();
 	}
-	
+	public boolean debug(String[] cmdString, Options options){
+		CommandLineParser parser = new DefaultParser();
+		CommandLine line;
+		try {
+			line = parser.parse(options, cmdString);
+			return line.hasOption("debug");
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return false;
+	}
 	
 	
 }
