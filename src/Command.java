@@ -523,6 +523,10 @@ public class Command {
 			}
 		}
 		catch (ParseException e) {
+			JSONObject error = new JSONObject();
+			error.put("response", "error");
+			error.put("errorMesage", "invalid resourceTemplate");
+			finalResult.add(error);
 			e.printStackTrace();
 		}
 		for (JSONObject result : finalResult) {
