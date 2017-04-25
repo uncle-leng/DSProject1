@@ -66,6 +66,7 @@ public class Client {
                             	logger.fine("RECEIVED:"+message);
                 		    }
                             System.out.println(message);
+                            if(!outCommand.isEmpty()){
                             if(outCommand.get("command").toString().equals("fetch")){
         						String fileName = "/Users/HuJP/Desktop/eclipseworkspace/DSProject1/clientfile/testfile.jpg";
         						RandomAccessFile downloadingFile = new RandomAccessFile(fileName, "rw");
@@ -100,6 +101,7 @@ public class Client {
         						downloadingFile.close();
 
                         }
+                    }
                         }
 		    }
 		    

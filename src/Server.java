@@ -84,9 +84,11 @@ public class Server {
 		    
 		    JSONObject responseObj = new JSONObject();
 		    JSONObject inputObj = (JSONObject) parser.parse(inputUTF);
-		    if (! inputObj.get("command").toString().equals("query")) {
+		    if(!inputObj.isEmpty()){
+		    if (! inputObj.get("command").toString().equals("query"))
+		    {
 		    	responseObj = (JSONObject) parser.parse(response);
-		    }
+		    	}
 		    //System.out.println(inputObj.get("command"));
 		    if (inputObj.get("command").toString().equals("exchange") && responseObj.get("response").toString().equals("success")) {
 		    	String serverListStr = inputObj.get("serverList").toString();
@@ -99,6 +101,7 @@ public class Server {
 		    	}
 		    	//System.out.println(serverList);
 		    	
+		    }
 		    }
 		    
 		    

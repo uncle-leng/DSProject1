@@ -1,9 +1,12 @@
 import java.net.URISyntaxException;
 
-import javax.sound.sampled.Line;
-
-import org.apache.commons.cli.*;
-import org.json.simple.*;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.MissingArgumentException;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.json.simple.JSONObject;
 
 public class CommandLineHandle {
 	
@@ -32,7 +35,6 @@ public class CommandLineHandle {
 	public JSONObject parse(String[] JSONString, Options options) throws URISyntaxException {
 		Command command=new Command();
 		CommandLineParser parser = new DefaultParser();
-		JSONObject result = new JSONObject();
 		//String lineString = "";
 		try {
 			CommandLine line = parser.parse(options, JSONString);
@@ -116,10 +118,17 @@ public class CommandLineHandle {
 			//else if(){	}
 			else System.out.println("invalid command");
 		}
-		catch (Exception e) {
-			e.printStackTrace();
+		 
+		catch (MissingArgumentException e){
+			System.out.println("missing argument!");
+		}
+		catch (ParseException e) {
+			// TODO Auto-generated catch block
+			//e.printStackTrace();
+			System.out.println("cannot parse command");
 		}
 		//return result.toString();
+		//System.out.println(command.toJSON().toJSONString());
 		return command.toJSON();
 	}
 	public boolean debug(String[] cmdString, Options options){
@@ -130,7 +139,7 @@ public class CommandLineHandle {
 			return line.hasOption("debug");
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
 		return false;
 	}
