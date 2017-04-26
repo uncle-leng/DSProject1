@@ -5,14 +5,14 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.net.ConnectException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URISyntaxException;
-import java.util.Arrays;
+import java.net.UnknownHostException;
 
 import javax.net.ServerSocketFactory;
 
-import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.json.simple.*;
@@ -24,14 +24,21 @@ public class Server {
 	
 	// Identifies the user number connected
 	private static int counter = 0;
-	
+	private static int exchangeinterval = 10 * 60;
 	public static String resourceFolder="./Resource/";
 	//filename which stores resource information
+	
+	static ArrayList<String> serverList = new ArrayList<String>();
+	
+	
 	public static void main(String[] args) {
 		
 		ServerSocketFactory factory = ServerSocketFactory.getDefault();
 		try(ServerSocket server = factory.createServerSocket(port)){
 			System.out.println("Server waiting for client connection..");
+			
+			Thread interaction= new Thread(() -> timer());
+			interaction.start();
 			
 			// Wait for connections.
 			while(true){
@@ -62,7 +69,7 @@ public class Server {
 	private static void serveClient(Socket client) throws URISyntaxException{
 		Command command=new Command();
 		JSONParser parser = new JSONParser();
-		ArrayList<String> serverList = new ArrayList<String>();
+		
 		
 		try(Socket clientSocket = client){
 			// Input stream
@@ -85,12 +92,13 @@ public class Server {
 		    JSONObject responseObj = new JSONObject();
 		    JSONObject inputObj = (JSONObject) parser.parse(inputUTF);
 		    if(!inputObj.isEmpty()){
-		    if (! inputObj.get("command").toString().equals("query"))
-		    {
+		    if (! inputObj.get("command").toString().equals("query")) {
 		    	responseObj = (JSONObject) parser.parse(response);
-		    	}
+		    }
 		    //System.out.println(inputObj.get("command"));
-		    if (inputObj.get("command").toString().equals("exchange") && responseObj.get("response").toString().equals("success")) {
+		    if (inputObj.get("command").toString().equals("exchange")
+		    		&& responseObj.get("response").toString().equals("success")
+		    		) {
 		    	String serverListStr = inputObj.get("serverList").toString();
 		    	JSONArray serverArray = (JSONArray) parser.parse(serverListStr);
 		    	for (int i = 0; i < serverArray.size(); i++) {
@@ -98,12 +106,14 @@ public class Server {
 					String port = serverArray.get(i).toString().split(",")[1].split(":")[1].replace("}", "").replaceAll("\"", "");
 					String serverRecord = ip + ":" + port;
 					serverList.add(serverRecord);
+					System.out.println(ip + ":" + port);
 		    	}
+//		    	Thread t = new Thread(() -> Client());
+//				t.start();
 		    	//System.out.println(serverList);
 		    	
 		    }
 		    }
-		    
 		    
 		  //System.out.println("hhhh");
 		    
@@ -136,6 +146,100 @@ public class Server {
 			
 			e.printStackTrace();
 			//System.out.println("ParseException");
+		}
+	}
+	
+	public static String Client(String ip,int port, String command){
+		try(Socket socket = new Socket(ip, port)){
+			// Output and Input Stream
+			DataInputStream input = new DataInputStream(socket.
+					getInputStream());
+		    DataOutputStream output = new DataOutputStream(socket.
+		    		getOutputStream());
+	    	output.writeUTF(command);
+	    	output.flush();
+	    	while(true){
+		    	if(input.available() > 0) {
+	
+	                String message = input.readUTF();
+	                System.out.println(message);
+	                return message;
+		    	}
+	    	}
+		} catch (ConnectException e){
+			System.out.println("Invild Host" + ip);
+			return "error";
+		}
+		catch (UnknownHostException e) {
+			System.out.println("invalid host" + ip);
+			return "error";
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+			return "error";
+
+		}
+
+		
+	}
+	public static void timer(){
+		Timer myTimer = new Timer();  
+		myTimer.schedule(new Timertest(), 1000  *10 ,1000 * 5);
+	}
+
+	static class Timertest extends TimerTask {
+
+		public void run() {
+			System.out.println("Start automatical exchange...");
+
+			if (serverList.isEmpty()){
+				System.out.println("empty serverlist!");
+				return;
+			}
+			Random rdm = new Random();
+			int rdmint = (int) (serverList.size() * rdm.nextDouble());
+			String ip = serverList.get(rdmint).split(":")[0];
+			int port = Integer.parseInt(serverList.get(rdmint).split(":")[1]);
+			JSONObject command = new JSONObject();
+			JSONArray serversArray = new JSONArray();
+			for (int i = 0; i < serverList.size(); i++) {
+				JSONObject obj = new JSONObject();
+				obj.put("hostname", serverList.get(i).split(":")[0]);
+				obj.put("port", serverList.get(i).split(":")[1]);
+				serversArray.add(obj);
+			}
+			command.put("command", "exchange");
+			command.put("serverList", serversArray.toJSONString());
+			String outCommand = command.toString();
+			try (Socket socket = new Socket(ip, port)) {
+				// Output and Input Stream
+				DataInputStream input = new DataInputStream(socket.getInputStream());
+				DataOutputStream output = new DataOutputStream(socket.getOutputStream());
+
+				output.writeUTF(outCommand);
+				output.flush();
+				
+					if (input.available() > 0) {
+
+						String message = input.readUTF();
+						System.out.println("Server " + serverList.get(rdmint).split(":")[0]);
+						System.out.println("port " + serverList.get(rdmint).split(":")[1]);
+						System.out.println("incoming:");
+						System.out.println(message);
+					}
+				
+			} catch (ConnectException e){
+				System.out.println("Invild Host" + ip);
+				serverList.remove(rdmint);
+				//hahhahahha
+			}
+			catch (UnknownHostException e) {
+				System.out.println("Invild Host" + ip);
+				serverList.remove(rdmint);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
 		}
 	}
 
