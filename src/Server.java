@@ -21,7 +21,16 @@ public class Server {
 	public static String secret  = "rxchfgjvhbjknlm24356784irokfjmnv";
 	// Declare the port number
 	private static int port = 3000;
-	
+	private static String hostName = "Default Hostname";
+	private static int connectionIntervallimit = 1;
+	public static void setHostName(String hostName) {
+		Server.hostName = hostName;
+	}
+
+	public static void setConnectionIntervallimit(int connectionIntervallimit) {
+		Server.connectionIntervallimit = connectionIntervallimit;
+	}
+
 	// Identifies the user number connected
 	private static int counter = 0;
 	private static int exchangeinterval = 10 * 60;
@@ -184,7 +193,19 @@ public class Server {
 	}
 	public static void timer(){
 		Timer myTimer = new Timer();  
-		myTimer.schedule(new Timertest(), 1000  *10 ,1000 * 5);
+		myTimer.schedule(new Timertest(), 1000  *10 ,1000 * exchangeinterval);
+	}
+
+	public static void setExchangeinterval(int exchangeinterval) {
+		Server.exchangeinterval =  exchangeinterval;
+	}
+
+	public static void setSecret(String secret) {
+		Server.secret = secret;
+	}
+
+	public static void setPort(int port) {
+		Server.port = port;
 	}
 
 	static class Timertest extends TimerTask {
