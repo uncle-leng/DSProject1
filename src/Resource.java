@@ -10,14 +10,14 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 public class Resource {
-	public String name;
-	public String description;
+	private String name;
+	private String description;
 	//public String[] tags;
-	public ArrayList<String> tags;
-	public URI uri;
-	public String channel;
-	public String owner;
-	public String ezserver;
+	private ArrayList<String> tags;
+	private URI uri;
+	private String channel;
+	private String owner;
+	private String ezserver;
 	
 	public Resource() throws URISyntaxException {
 		this.name = "";
@@ -134,6 +134,17 @@ public class Resource {
 		}
 	}
 	
+	public String getName(){
+		return name;
+	}
+	
+	public String getDescription(){
+		return description;
+	}
+	
+	public ArrayList<String> getTags(){
+		return tags;
+	}
 
 	public URI getUri() {
 		return uri;
@@ -147,7 +158,11 @@ public class Resource {
 		return owner;
 	}
 	
-	public Resource fromString(String resourceStr) throws ParseException, URISyntaxException {
+	public String getEzserver(){
+		return ezserver;
+	}
+	
+	/*public Resource fromString(String resourceStr) throws ParseException, URISyntaxException {
 		Resource resource = new Resource();
 		JSONParser parser = new JSONParser();
 		JSONObject resourceObj = (JSONObject) parser.parse(resourceStr);
@@ -157,7 +172,7 @@ public class Resource {
 		}
 		return resource;
 		
-	}
+	}*/
 	/*
 	public void setter(String key, ArrayList<String> value) {
 		if (key.equals("tags")) {

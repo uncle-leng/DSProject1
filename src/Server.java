@@ -157,7 +157,7 @@ public class Server {
 		    
 		    output.writeUTF("Server: Hi Client "+counter+" !!!");
 		    output.writeUTF(response);
-		    if(command.command.equals("fetch")){
+		    if(command.getCommand().equals("fetch")){
 				//File f = new File(command.resourceTemplate.uri.toString());
 				File f = new File("/Users/HuJP/Desktop/eclipseworkspace/DSProject1/serverfile/sauron.jpg");
 				if(f.exists()){

@@ -80,11 +80,7 @@ public class CommandLineHandle {
 //			//if (line.hasOption("share")) {result.put("command", "SHARE");}
 //			if (line.hasOption("share")) {command.setCommand("share");}
 			
-			//debug mode
-			if (line.hasOption("debug")) {
-				command.setDebug();
-				//result.
-			}
+			
 
 			if (line.hasOption("publish") 
 					|| line.hasOption("remove") 
@@ -94,13 +90,13 @@ public class CommandLineHandle {
 				if (line.hasOption("share")) {command.setCommand("share");}
 				
 				//resource
-				if (line.hasOption("channel")) {command.resource.setter("channel", line.getOptionValue("channel"));}
-				if (line.hasOption("description")) {command.resource.setter("description", line.getOptionValue("description"));}
-				if (line.hasOption("name")) {command.resource.setter("name", line.getOptionValue("name"));}
-				if (line.hasOption("owner")) {command.resource.setter("owner", line.getOptionValue("owner"));}
-				if (line.hasOption("tags")) {command.resource.setter("tags", line.getOptionValue("tags"));}
-				if (line.hasOption("uri")) {command.resource.setter("uri", line.getOptionValue("uri"));}
-				if (line.hasOption("ezserver")) {command.resource.setter("ezserver", line.getOptionValue("ezserver"));}
+				if (line.hasOption("channel")) {command.getResource().setter("channel", line.getOptionValue("channel"));}
+				if (line.hasOption("description")) {command.getResource().setter("description", line.getOptionValue("description"));}
+				if (line.hasOption("name")) {command.getResource().setter("name", line.getOptionValue("name"));}
+				if (line.hasOption("owner")) {command.getResource().setter("owner", line.getOptionValue("owner"));}
+				if (line.hasOption("tags")) {command.getResource().setter("tags", line.getOptionValue("tags"));}
+				if (line.hasOption("uri")) {command.getResource().setter("uri", line.getOptionValue("uri"));}
+				if (line.hasOption("ezserver")) {command.getResource().setter("ezserver", line.getOptionValue("ezserver"));}
 			
 				if (line.hasOption("secret")) {command.setSecret(line.getOptionValue("secret"));}
 			}

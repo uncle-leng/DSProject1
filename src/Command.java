@@ -38,15 +38,15 @@ import org.json.simple.parser.ParseException;
 */  
 public class Command {
 	
-	public String command;
-	public String secret;
-	public Resource resource;
-	public boolean relay;
-	public JSONArray serverList;
+	private String command;
+	private String secret;
+	private Resource resource;
+	private boolean relay;
+	private JSONArray serverList;
 	public Resource resourceTemplate;
 	//public Serverlist serverList;
 	//public JSONObject resourceTemplate;
-	public boolean debug;
+	//public boolean debug;
 	
 	public Command() throws URISyntaxException{
 		command="";
@@ -73,8 +73,16 @@ public class Command {
 	/*public void setDebug(boolean debug){
 		this.debug=debug;
 	}*/
+	
+	public String getCommand(){
+		return this.command;
+	}
 	public String getSecret(){
 		return this.secret;
+	}
+	
+	public Resource getResource(){
+		return this.resource;
 	}
 	
 	public void setResource(Resource resource){
@@ -100,10 +108,10 @@ public class Command {
 		//this.serverlist = serverlist;
 
 	}
-	public void setDebug(){
+	/*public void setDebug(){
 		this.debug = true;
 
-	}
+	}*/
 	
 //	public void setResourceTemplate(JSONArray resourceTemplate){
 //		this.resourceTemplate=resourceTemplate;
@@ -430,13 +438,13 @@ public class Command {
 		JSONParser parser = new JSONParser();
 		//JSONObject resourceTemplate = (JSONObject) parser.parse((String)queryJSON.get("resourceTemplate"));
 		Resource rt = new Resource(resourceTemplate);
-		boolean channelMatch = resource.channel.equals(rt.channel);
-		boolean ownerMatch = resource.channel.equals(rt.channel);
-		boolean tagMatch = intersection(resource.tags, rt.tags);
-		boolean uriMatch = resource.uri.equals(rt.uri);
-		boolean nameAndDesMatch = (((rt.name.equals("")) ||  resource.name.contains(rt.name)) ||
-				((rt.description.equals("")) || resource.description.contains(rt.description)) ||
-				((rt.name.equals("")) && rt.description.equals("")));
+		boolean channelMatch = resource.getChannel().equals(rt.getChannel());
+		boolean ownerMatch = resource.getOwner().equals(rt.getOwner());
+		boolean tagMatch = intersection(resource.getTags(), rt.getTags());
+		boolean uriMatch = resource.getUri().equals(rt.getUri());
+		boolean nameAndDesMatch = (((rt.getName().equals("")) ||  resource.getName().contains(rt.getName())) ||
+				((rt.getDescription().equals("")) || resource.getDescription().contains(rt.getDescription())) ||
+				((rt.getName().equals("")) && rt.getDescription().equals("")));
 		if (channelMatch && ownerMatch && tagMatch && uriMatch && nameAndDesMatch)
 		{
 			match = true;
@@ -492,9 +500,9 @@ public class Command {
 					//System.out.println(queryMatch(resource, resourceTemplate));
 					//System.out.println(resourceTemplate);
 					//System.out.println(resource.tags);
-					for (int i = 0; i < resource.tags.size(); i++) {
-						String temp = resource.tags.get(i).replace("[", "").replace("]", "");
-						resource.tags.set(i, temp);
+					for (int i = 0; i < resource.getTags().size(); i++) {
+						String temp = resource.getTags().get(i).replace("[", "").replace("]", "");
+						resource.getTags().set(i, temp);
 					}
 
 	
@@ -596,7 +604,7 @@ public class Command {
 				if(!file.exists()){
 					file.mkdirs();
 					}
-				File sharefile=new File(shres.uri);
+				File sharefile=new File(shres.getUri());
 		//System.out.println(sharefile.toURI().toString());
 				if(sharefile.exists()){
 					long size=sharefile.length();
