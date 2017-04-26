@@ -32,6 +32,16 @@ public class CommandLineHandle {
 		return options;
 	}
 	
+	public Options getServerOptions() {
+		Options options = new Options();
+		options.addOption("advertisedhostname", true, "advertised hostname");
+		options.addOption("connectionintervallimit", true, "connection interval limit in seconds");
+		options.addOption("port", true, "server port, an integer");
+		options.addOption("secret", true, "secret");
+		options.addOption("debug", false, "print debug information");
+		return options;
+		}
+	
 	public JSONObject parse(String[] JSONString, Options options) throws URISyntaxException {
 		Command command=new Command();
 		CommandLineParser parser = new DefaultParser();
@@ -130,6 +140,32 @@ public class CommandLineHandle {
 		//return result.toString();
 		//System.out.println(command.toJSON().toJSONString());
 		return command.toJSON();
+	}
+	
+	public void parseServerCmd(String[] cmdString, Options options){
+		CommandLineParser parser = new DefaultParser();
+		try {
+			/*options.addOption("advertisedhostname", true, "advertised hostname");
+			options.addOption("connectionintervallimit", true, "connection interval limit in seconds");
+			options.addOption("port", true, "server port, an integer");
+			options.addOption("secret", true, "secret");
+			options.addOption("debug", false, "print debug information");*/
+			CommandLine line=parser.parse(options, cmdString);
+			if(line.hasOption("advertisedhostname"))
+				Server.setHostName(line.getOptionValue("advertisedhostname"));
+			if(line.hasOption("connectionintervallimit"))
+				Server.setConnectionIntervallimit(Integer.parseInt(line.getOptionValue("connectionintervallimit")));
+			if(line.hasOption("port"))
+				Server.setPort(Integer.parseInt(line.getOptionValue("port")));
+			if(line.hasOption("secret"))
+				Server.setSecret(line.getOptionValue("secret"));
+			} 
+		catch (MissingArgumentException e){
+			System.out.println("missing argument!");
+		}
+		catch (ParseException e) {
+			System.out.println("cannot parse command");
+		}
 	}
 	public boolean debug(String[] cmdString, Options options){
 		CommandLineParser parser = new DefaultParser();

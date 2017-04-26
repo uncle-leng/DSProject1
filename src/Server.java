@@ -1,6 +1,5 @@
 	
 import java.io.DataInputStream;
-import java.util.*;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -10,15 +9,25 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.net.ServerSocketFactory;
 
+import org.apache.commons.cli.Options;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.json.simple.*;
+import org.apache.commons.lang3.*;;
 public class Server {
 	//private String secret  = "rxchfgjvhbjknlm24356784irokfjmnv";
-	public static String secret  = "rxchfgjvhbjknlm24356784irokfjmnv";
+	public static String secret  = RandomStringUtils.randomAlphanumeric(32);
 	// Declare the port number
 	private static int port = 3000;
 	private static String hostName = "Default Hostname";
@@ -41,7 +50,19 @@ public class Server {
 	
 	
 	public static void main(String[] args) {
-		
+		CommandLineHandle commandLine = new CommandLineHandle();
+		Options options=commandLine.getServerOptions();
+		commandLine.parseServerCmd(args, options);
+		if(commandLine.debug(args,options)){
+			Logger logger=Logger.getLogger("Server");
+	    	logger.setLevel(Level.ALL);
+	    	logger.info("Starting the EZShare Server");
+	    	logger.info("using secret:"+Server.secret);
+	    	logger.info("using advertised hostname: "+Server.hostName);
+	    	logger.info("bound to port "+Server.port);
+	    	logger.info("started");
+	    }
+
 		ServerSocketFactory factory = ServerSocketFactory.getDefault();
 		try(ServerSocket server = factory.createServerSocket(port)){
 			System.out.println("Server waiting for client connection..");
