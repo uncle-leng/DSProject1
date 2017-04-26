@@ -33,7 +33,7 @@ public class Server {
 
 	// Identifies the user number connected
 	private static int counter = 0;
-	private static int exchangeinterval = 10 * 60;
+	private static int exchangeinterval = 5;
 	public static String resourceFolder="./Resource/";
 	//filename which stores resource information
 	
@@ -111,10 +111,18 @@ public class Server {
 		    	String serverListStr = inputObj.get("serverList").toString();
 		    	JSONArray serverArray = (JSONArray) parser.parse(serverListStr);
 		    	for (int i = 0; i < serverArray.size(); i++) {
+		    		boolean dup = false;
 		    		String ip = serverArray.get(i).toString().split(",")[0].split(":")[1].replaceAll("\"", "");
 					String port = serverArray.get(i).toString().split(",")[1].split(":")[1].replace("}", "").replaceAll("\"", "");
 					String serverRecord = ip + ":" + port;
+					for (int j = 0; j < serverList.size(); j++) {
+						if (serverList.get(j).equals(serverRecord)) {
+							dup = true;
+						}
+					}
+					if (dup == false){
 					serverList.add(serverRecord);
+					}
 					System.out.println(ip + ":" + port);
 		    	}
 //		    	Thread t = new Thread(() -> Client());
