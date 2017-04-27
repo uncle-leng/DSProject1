@@ -80,8 +80,12 @@ public class CommandLineHandle {
 //			//if (line.hasOption("share")) {result.put("command", "SHARE");}
 //			if (line.hasOption("share")) {command.setCommand("share");}
 			
-			
-
+			if(line.hasOption("host")){
+				Client.setHost(line.getOptionValue("host"));
+			}
+			if(line.hasOption("port")){
+				Client.setPort(Integer.parseInt(line.getOptionValue("port")));
+			}
 			if (line.hasOption("publish") 
 					|| line.hasOption("remove") 
 					|| line.hasOption("share")){

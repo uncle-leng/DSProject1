@@ -19,13 +19,35 @@ import org.json.simple.JSONObject;
 public class Client {
 	
 	// IP and port
-	private static String ip = "localhost";
+	private static String host = "localhost";
 	private static int port = 3000;
 	private static CommandLineHandle commandLine = new CommandLineHandle();
 	private static Options options = commandLine.getOptions();
 	
+	public static String getHost() {
+		return host;
+	}
+	
+	public static void setHost(String host) {
+		Client.host = host;
+	}
+	
+	public static int getPort() {
+		return port;
+	}
+	
+	public static void setPort(int port) {
+		Client.port = port;
+	}
+
+
+
+	
 	public static void main(String[] args) throws URISyntaxException {
-		try(Socket socket = new Socket(ip, port)){
+		JSONObject outCommand = commandLine.parse(args, options);
+	    String out = outCommand.toString();
+	//System.out.println(out);
+		try(Socket socket = new Socket(host, port)){
 			// Output and Input Stream
 			DataInputStream input = new DataInputStream(socket.
 					getInputStream());
@@ -37,8 +59,7 @@ public class Client {
 		    
 	    	//output.writeUTF(outCommand);
 
-		    JSONObject outCommand = commandLine.parse(args, options);
-		    String out = outCommand.toString();
+		    
 	    	output.writeUTF(out);
 	    	output.flush();
 	    	
@@ -61,11 +82,11 @@ public class Client {
                             //System.out.println("incoming:");
                             //System.out.println(message);
                             System.out.println(message);
-                            message = input.readUTF();
+                            //message = input.readUTF();
                             if(commandLine.debug(args,options)){
                             	logger.fine("RECEIVED:"+message);
                 		    }
-                            System.out.println(message);
+                           // System.out.println(message);
                             if(!outCommand.isEmpty()){
                             if(outCommand.get("command").toString().equals("fetch")){
         						String fileName = "/Users/HuJP/Desktop/eclipseworkspace/DSProject1/clientfile/testfile.jpg";
