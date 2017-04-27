@@ -27,7 +27,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.apache.commons.lang3.*;;
+import org.apache.commons.lang.*;
 public class Server {
 	//public static String secret  = "rxchfgjvhbjknlm24356784irokfjmnv";
 	public static String secret  = RandomStringUtils.randomAlphanumeric(32);
