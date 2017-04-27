@@ -1,12 +1,15 @@
 	
+import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.net.ConnectException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -26,12 +29,22 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.apache.commons.lang3.*;;
 public class Server {
-	//private String secret  = "rxchfgjvhbjknlm24356784irokfjmnv";
+	//public static String secret  = "rxchfgjvhbjknlm24356784irokfjmnv";
 	public static String secret  = RandomStringUtils.randomAlphanumeric(32);
 	// Declare the port number
 	private static int port = 3000;
 	private static String hostName = "Default Hostname";
 	private static int connectionIntervallimit = 1;
+	
+
+	// Identifies the user number connected
+	private static int counter = 0;
+	private static int exchangeinterval = 10*60;
+	public static String resourceFolder="./Resource/";
+	//filename which stores resource information
+	
+	static ArrayList<String> serverList = new ArrayList<String>();
+	
 	public static void setHostName(String hostName) {
 		Server.hostName = hostName;
 	}
@@ -39,16 +52,6 @@ public class Server {
 	public static void setConnectionIntervallimit(int connectionIntervallimit) {
 		Server.connectionIntervallimit = connectionIntervallimit;
 	}
-
-	// Identifies the user number connected
-	private static int counter = 0;
-	private static int exchangeinterval = 5;
-	public static String resourceFolder="./Resource/";
-	//filename which stores resource information
-	
-	static ArrayList<String> serverList = new ArrayList<String>();
-	
-	
 	public static void main(String[] args) {
 		CommandLineHandle commandLine = new CommandLineHandle();
 		Options options=commandLine.getServerOptions();
@@ -155,11 +158,28 @@ public class Server {
 		    
 		  //System.out.println("hhhh");
 		    
-		    output.writeUTF("Server: Hi Client "+counter+" !!!");
+		  //  output.writeUTF("Server: Hi Client "+counter+" !!!");
 		    output.writeUTF(response);
-		    if(command.getCommand().equals("fetch")){
+		    if(command.getCommand().equals("fetch") ){
+		     	responseObj = (JSONObject) parser.parse(response); 	
+		     	if(responseObj.get("response").equals("success")){
+				String ftfilename=command.getResourceTemplate().getPK().replaceAll(":", "").replaceAll("/", "")+".json";
+				String filePath=Server.resourceFolder+ftfilename;
+				File resfile = new File(filePath);
+				BufferedReader reader = null;
+				reader = new BufferedReader(new FileReader(resfile));
+				String tempString = reader.readLine();
+				output.writeUTF(tempString);
+				System.out.println(tempString);
+				JSONObject jsonResourceFile  = (JSONObject) parser.parse(tempString);
+				Resource fetres=new Resource(jsonResourceFile);
+				
+				int fileSize = Integer.parseInt(jsonResourceFile.get("resourceSize").toString());
+				URI resourceURI = fetres.getUri();
+		    		
+		    		
 				//File f = new File(command.resourceTemplate.uri.toString());
-				File f = new File("/Users/HuJP/Desktop/eclipseworkspace/DSProject1/serverfile/sauron.jpg");
+				File f = new File(resourceURI);
 				if(f.exists()){
 				RandomAccessFile byteFile = new RandomAccessFile(f,"r");
 				System.out.println(f.length());
@@ -172,10 +192,13 @@ public class Server {
 					output.write(Arrays.copyOf(sendingBuffer, num));
 				}
 				byteFile.close();
+				JSONObject resourceSize = new JSONObject();
+				resourceSize.put("resourceSize", fileSize);
+				output.writeUTF(resourceSize.toJSONString());
 			}
 		    }
 		    //output.writeUTF("over");
-		   
+		    }
 		} catch (IOException e) {
 			e.printStackTrace();
 			//System.out.println("IOException");
@@ -222,7 +245,7 @@ public class Server {
 	}
 	public static void timer(){
 		Timer myTimer = new Timer();  
-		myTimer.schedule(new Timertest(), 1000  *10 ,1000 * exchangeinterval);
+		myTimer.schedule(new Timertest(), 1000  * 60 * 5 ,1000 * exchangeinterval);
 	}
 
 	public static void setExchangeinterval(int exchangeinterval) {

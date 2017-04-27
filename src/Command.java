@@ -139,7 +139,7 @@ public class Command {
 			break;
 		case "fetch":
 			JSONcmd.put("command", "fetch");
-			JSONcmd.put("resource", resourceTemplate.toJSON().toJSONString());
+			JSONcmd.put("resourceTemplate", resourceTemplate.toJSON().toJSONString());
 			break;
 		case "exchange":
 			JSONcmd.put("command", "exchange");
@@ -637,6 +637,7 @@ public class Command {
 		String ftresStr=cmd.get("resourceTemplate").toString();
 		JSONObject ftresJSON=toJSON(ftresStr);
 		Resource ftres=new Resource(ftresJSON);
+		this.resourceTemplate = ftres;
 		String ftfilename=ftres.getPK().replaceAll(":", "").replaceAll("/", "")+".json";
 		if(ftres.isEmpty()){
 			response.put("response", "error");
@@ -679,6 +680,10 @@ public class Command {
 		
 	}
 	
+	public Resource getResourceTemplate() {
+		return resourceTemplate;
+	}
+
 	public boolean validIP(String ip) {
 		try{
 			String[] ipArray = ip.split(".");
