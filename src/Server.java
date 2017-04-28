@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.net.ConnectException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -22,6 +23,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.net.ServerSocketFactory;
+
 
 import org.apache.commons.cli.Options;
 import org.apache.commons.lang.RandomStringUtils;
@@ -257,10 +259,12 @@ public class Server {
 							dup = true;
 						}
 					}
-					if (dup == false){
+					if (dup == false && !serverRecord.split(":")[0].equals(InetAddress.getLocalHost().toString().split("/")[1])){
 					serverList.add(serverRecord);
-					}
 					System.out.println(ip + ":" + port);
+					}
+					
+					
 		    	}
 //		    	Thread t = new Thread(() -> Client());
 //				t.start();
