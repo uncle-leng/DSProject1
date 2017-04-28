@@ -135,6 +135,7 @@ public class Command {
 			break;
 		case "query":
 			JSONcmd.put("command", "query");
+			JSONcmd.put("relay", this.relay);
 			JSONcmd.put("resourceTemplate", resourceTemplate.toJSON().toJSONString());
 			break;
 		case "fetch":
@@ -413,7 +414,7 @@ public class Command {
 				allResource.add(fileResource);
 			}
 		}
-		System.out.println(allResource);
+		//System.out.println(allResource);
 		return allResource;
 		
 	}
