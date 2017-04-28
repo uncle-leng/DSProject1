@@ -169,6 +169,7 @@ public class Server {
 		    
 		    //System.out.println(inputObj);
 		    if (inputObj.containsKey("relay")&&inputObj.get("command").toString().equals("QUERY") && inputObj.get("relay").toString().equals("true")) {
+
 		    	JSONObject tempObj = inputObj;
 		    	tempObj.put("relay", false);
 		    	JSONObject resourceTemplate = (JSONObject) parser.parse(tempObj.get("resourceTemplate").toString());
