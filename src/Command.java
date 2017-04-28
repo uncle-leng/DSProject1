@@ -628,6 +628,10 @@ public class Command {
 				response.put("response", "error");
 				response.put("errorMessage", "cannot share resource");
 				e.printStackTrace();
+			}catch (IllegalArgumentException e){
+				response.put("response", "error");
+				response.put("errorMessage", "cannot share resource");
+				e.printStackTrace();
 			}
 		}
 		return response.toJSONString();

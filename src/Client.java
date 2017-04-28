@@ -2,6 +2,7 @@
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
+import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.net.Socket;
@@ -73,29 +74,47 @@ public class Client {
 				logger.info("setting debug on");
 				logger.fine("SENT:" + outCommand);
 			}
-
-			if (input.available() > 0){
-			
+//			while(true){
+//			if (input.available() > 0){
+//			
+			try{
 					String message = input.readUTF();
-					//System.out.println("message" + message);
+					System.out.println(message);
 
 					// message = input.readUTF();
 					if (commandLine.debug(args, options)) {
 						logger.fine("RECEIVED:" + message);
 					}
-					
+			}catch(EOFException e){
 				
 			}
+					//break;
+				
+//			}
+//		}
 					// System.out.println(message);
 					if (!outCommand.isEmpty()) {
 						if (outCommand.get("command").toString().equals("fetch")) {
 							String resource = input.readUTF();
-							//System.out.println("resource" + resource);
+							System.out.println( resource);
 							if (commandLine.debug(args, options)) {
 								logger.fine("RECEIVED:" + resource);
 							}
 								JSONObject jsonResource = (JSONObject) parser.parse(resource);
-								String fileName = "clientfile/" + jsonResource.get("name").toString();
+								File clientfile = new File("clientfile");
+								
+								if(!clientfile.isDirectory()){
+									 
+										 			clientfile.mkdir();
+										             
+								}
+								String fileName = "clientfile/";
+								if (jsonResource.get("name").toString().equals("")){
+									fileName += "nonamefile";
+								}
+								else{
+								fileName+= jsonResource.get("name").toString();
+								}
 								long fileSizeRemaining = Long.parseLong(jsonResource.get("resourceSize").toString());
 								RandomAccessFile downloadingFile = new RandomAccessFile(fileName, "rw");
 
@@ -128,7 +147,7 @@ public class Client {
 								downloadingFile.close();
 
 								String resourceSize = input.readUTF();
-								//System.out.println(resourceSize);
+								System.out.println(resourceSize);
 								if (commandLine.debug(args, options)) {
 									logger.fine("RECEIVED:" + resourceSize);
 								}
