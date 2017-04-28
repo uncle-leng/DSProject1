@@ -161,7 +161,9 @@ public class CommandLineHandle {
 				Server.setPort(Integer.parseInt(line.getOptionValue("port")));
 			if(line.hasOption("secret"))
 				Server.setSecret(line.getOptionValue("secret"));
-			} 
+			if(line.hasOption("exchangeinterval"))
+				Server.setExchangeinterval(Integer.parseInt(line.getOptionValue("exchangeinterval")));
+			}
 		catch (MissingArgumentException e){
 			System.out.println("missing argument!");
 		}
