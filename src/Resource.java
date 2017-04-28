@@ -1,3 +1,4 @@
+import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -246,6 +247,10 @@ public class Resource {
 			return true;
 		else
 			return false;
+	}
+	public static void main(String[] args){
+		File file=new File("/Users/robin/Documents/workspace/DSProject1.zip_expanded/DSProject1/serverfile/sauron.jpg");
+		System.out.println(file.toURI().toString());
 	}
 
 }
