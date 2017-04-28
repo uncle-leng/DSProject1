@@ -95,6 +95,7 @@ public class Command {
 	
 
 	public void addServer(String servers){
+		try {
 		JSONArray serversArray = new JSONArray();
 		String server[] = servers.replaceAll("\"", "").split(",");
 		for (String s : server) {
@@ -104,6 +105,10 @@ public class Command {
 			serversArray.add(obj);
 		}
 		this.serverList = serversArray;
+		}
+		catch (Exception e) {
+			System.out.println("invalid server!");
+		}
 		//this.serverList.add(servers);
 		//this.serverlist = serverlist;
 
@@ -135,6 +140,7 @@ public class Command {
 			break;
 		case "query":
 			JSONcmd.put("command", "query");
+			JSONcmd.put("relay", this.relay);
 			JSONcmd.put("resourceTemplate", resourceTemplate.toJSON().toJSONString());
 			break;
 		case "fetch":
@@ -413,7 +419,7 @@ public class Command {
 				allResource.add(fileResource);
 			}
 		}
-		System.out.println(allResource);
+		//System.out.println(allResource);
 		return allResource;
 		
 	}
@@ -470,7 +476,7 @@ public class Command {
 		ArrayList<JSONObject> finalResult = new ArrayList<JSONObject>();
 		String resultStr = "";
 		String filePath = "./Resource";
-		System.out.println(cmd.toJSONString());
+		//System.out.println(cmd.toJSONString());
 		JSONObject resourceObj = (JSONObject) parser.parse(cmd.get("resourceTemplate").toString());
 		Resource res = new Resource(resourceObj);
 		JSONObject resourceTemplate = res.toJSON();
@@ -723,7 +729,7 @@ public class Command {
 			//System.out.println(serverStr);
 			String serverStr = cmd.get("serverList").toString();
 			JSONArray serverArray = (JSONArray) parser.parse(serverStr);
-			System.out.println(serverArray);
+			//System.out.println(serverArray);
 			if (serverArray.size() == 0) {
 				JSONObject errorMsg = new JSONObject();
 				errorMsg.put("response", "error");

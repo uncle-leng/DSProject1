@@ -27,7 +27,9 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+
 import org.apache.commons.lang.*;
+
 public class Server {
 	//public static String secret  = "rxchfgjvhbjknlm24356784irokfjmnv";
 	public static String secret  = RandomStringUtils.randomAlphanumeric(32);
@@ -39,7 +41,7 @@ public class Server {
 
 	// Identifies the user number connected
 	private static int counter = 0;
-	private static int exchangeinterval = 10*60;
+	private static int exchangeinterval = 5;
 	public static String resourceFolder="./Resource/";
 	//filename which stores resource information
 	
@@ -52,7 +54,23 @@ public class Server {
 	public static void setConnectionIntervallimit(int connectionIntervallimit) {
 		Server.connectionIntervallimit = connectionIntervallimit;
 	}
-	public static void main(String[] args) {
+
+
+	// Identifies the user number connected
+	//private static int counter = 0;
+	//private static int exchangeinterval = 5;
+	//public static String resourceFolder="./Resource/";
+	//filename which stores resource information
+	
+	//private static ArrayList<String> serverList = new ArrayList<String>();
+	private static boolean queryComplete = false;
+	private static String queryRelayResult = "";
+	
+	
+
+	public static void main(String[] args) throws URISyntaxException {
+
+
 		CommandLineHandle commandLine = new CommandLineHandle();
 		Options options=commandLine.getServerOptions();
 		commandLine.parseServerCmd(args, options);
@@ -66,9 +84,27 @@ public class Server {
 	    	logger.info("started");
 	    }
 
+
 		ServerSocketFactory factory = ServerSocketFactory.getDefault();
 		try(ServerSocket server = factory.createServerSocket(port)){
 			System.out.println("Server waiting for client connection..");
+			
+			Command command = new Command();
+			JSONParser parser = new JSONParser();
+			//String input = 
+			//JSONObject commandObj = (JSONObject) parser.parse()
+			
+			for (String hostRecord : serverList) {
+				String ip = hostRecord.split(":")[0];
+				int port = Integer.parseInt(hostRecord.split(":")[1]);
+				//Thread queryRelay = new Thread( () -> client(ip, port, ))
+			}
+			
+			
+			
+			
+			
+			
 			
 			Thread interaction= new Thread(() -> timer());
 			interaction.start();
@@ -83,6 +119,7 @@ public class Server {
 				// Start a new thread for a connection
 				Thread t = new Thread(() -> {
 					try {
+						
 						serveClient(client);
 					} catch (URISyntaxException e) {
 						// TODO Auto-generated catch block
@@ -112,6 +149,57 @@ public class Server {
 		    DataOutputStream output = new DataOutputStream(clientSocket.
 		    		getOutputStream());
 		    String inputUTF = input.readUTF();
+		    JSONObject responseObj = new JSONObject();
+		    JSONObject inputObj = (JSONObject) parser.parse(inputUTF);
+		    //String response = "";
+		    
+		    //System.out.println(inputObj);
+		    if (inputObj.get("command").toString().equals("query") && inputObj.get("relay").toString().equals("true")) {
+		    	JSONObject tempObj = inputObj;
+		    	tempObj.put("relay", false);
+		    	JSONObject resourceTemplate = (JSONObject) tempObj.get("resourceTemplate");
+		    	resourceTemplate.put("owner", "");
+		    	resourceTemplate.put("channel", "");
+		    	tempObj.put("resourceTemplate", resourceTemplate);
+		    	
+		    	Thread queryRelay = new Thread( () -> {
+					try {
+					
+						queryRelayResult = getAllQuery(serverList, tempObj.toJSONString() );
+						String[] localQuery = command.parseCommand(inputUTF).split("\n");
+						JSONObject localQueryObj = (JSONObject) parser.parse(localQuery[0]);
+						if (localQueryObj.get("response").toString().equals("success")) {
+							String finalQueryResult = "";
+							for (int i = 0; i < localQuery.length - 1; i++) {
+								finalQueryResult += localQuery[i] + "\n";
+							}
+							finalQueryResult += queryRelayResult;
+							int size = finalQueryResult.split("\n").length  - 1;
+							JSONObject resultSize = new JSONObject();
+							resultSize.put("resultSize", size);
+							finalQueryResult += resultSize.toJSONString() + "\n";
+							System.out.println(finalQueryResult);
+							output.writeUTF("Server: Hi Client "+counter+" !!!");
+							output.writeUTF(finalQueryResult);
+							output.flush();
+						}
+						
+					} catch (ParseException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (URISyntaxException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}); 
+		   
+		    }
+		  
+		    else{
+		    
 		   String response=command.parseCommand(inputUTF);
 		  // System.out.println(input.readUTF());
 		    
@@ -122,8 +210,7 @@ public class Server {
 		    
 		    
 		    
-		    JSONObject responseObj = new JSONObject();
-		    JSONObject inputObj = (JSONObject) parser.parse(inputUTF);
+		    
 		    if(!inputObj.isEmpty()){
 		    if (! inputObj.get("command").toString().equals("query")) {
 		    	responseObj = (JSONObject) parser.parse(response);
@@ -199,6 +286,7 @@ public class Server {
 		    }
 		    //output.writeUTF("over");
 		    }
+		    }
 		} catch (IOException e) {
 			e.printStackTrace();
 			//System.out.println("IOException");
@@ -209,6 +297,7 @@ public class Server {
 			//System.out.println("ParseException");
 		}
 	}
+	
 	
 	public static String Client(String ip,int port, String command){
 		try(Socket socket = new Socket(ip, port)){
@@ -241,6 +330,28 @@ public class Server {
 
 		}
 
+		
+	}
+	
+	
+	public static String getAllQuery (ArrayList<String> serverList, String command) throws ParseException {
+		//boolean queryComplete = false;
+		String queryResult = "";
+		JSONParser parser = new JSONParser();
+		for (String server : serverList) {
+			String ip = server.split(":")[0];
+			int port = Integer.parseInt(server.split(":")[1]);
+			String[] queryTemp = Client(ip, port, command).split("\n");
+			JSONObject queryRes = (JSONObject) parser.parse(queryTemp[0]);
+			if (queryRes.get("response").equals("success")) {
+				for (int i = 1; i < queryTemp.length-1; i++) {
+					queryResult += queryTemp[i] + "\n";
+				}
+			}
+			
+		}
+		queryComplete = true;
+		return queryResult;
 		
 	}
 	public static void timer(){

@@ -29,6 +29,7 @@ public class CommandLineHandle {
 		options.addOption("share", false, "share resource on server");
 		options.addOption("tags", true, "resource tags, tag1,tag2,tag3,...");
 		options.addOption("uri", true, "resource URI");
+		options.addOption("relay", true, "set relay");
 		return options;
 	}
 	
@@ -117,6 +118,7 @@ public class CommandLineHandle {
 				if (line.hasOption("tags")) {command.resourceTemplate.setter("tags", line.getOptionValue("tags"));}
 				if (line.hasOption("uri")) {command.resourceTemplate.setter("uri", line.getOptionValue("uri"));}
 				if (line.hasOption("ezserver")) {command.resourceTemplate.setter("ezserver", line.getOptionValue("ezserver"));}
+				if (line.hasOption("relay")) {command.setRelay(Boolean.parseBoolean(line.getOptionValue("relay")));}
 				
 				
 			}
@@ -134,7 +136,7 @@ public class CommandLineHandle {
 		}
 		catch (ParseException e) {
 			// TODO Auto-generated catch block
-			//e.printStackTrace();
+			e.printStackTrace();
 			System.out.println("cannot parse command");
 		}
 		//return result.toString();

@@ -24,6 +24,8 @@ public class Client {
 	// IP and port
 	private static String host = "localhost";
 	private static int port = 3000;
+	
+	
 	private static CommandLineHandle commandLine = new CommandLineHandle();
 	private static Options options = commandLine.getOptions();
 
@@ -72,7 +74,7 @@ public class Client {
 				logger.fine("SENT:" + outCommand);
 			}
 
-			
+			if (input.available() > 0){
 			
 					String message = input.readUTF();
 					//System.out.println("message" + message);
@@ -83,7 +85,7 @@ public class Client {
 					}
 					
 				
-			
+			}
 					// System.out.println(message);
 					if (!outCommand.isEmpty()) {
 						if (outCommand.get("command").toString().equals("fetch")) {
@@ -136,7 +138,9 @@ public class Client {
 				
 			}
 
-		} catch (UnknownHostException e) {
+		} 
+	
+		catch (UnknownHostException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
