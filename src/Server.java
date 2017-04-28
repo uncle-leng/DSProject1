@@ -180,7 +180,7 @@ public class Server {
 				 */
 		    	//Thread queryRelay = new Thread( () -> {
 				try (Socket clientSocketTemp = client){
-					
+					queryRelayResult = getAllQuery(serverList, tempObj.toJSONString() );
 				//System.out.println(queryRelayResult);
 					DataInputStream inputTemp = new DataInputStream(clientSocketTemp.
 							getInputStream());
@@ -189,7 +189,7 @@ public class Server {
 				    		getOutputStream());
 				  
 					//System.out.println(queryRelayResult);
-				    queryRelayResult = getAllQuery(serverList, tempObj.toJSONString() );
+				    
 						String[] localQuery = command.parseCommand(inputUTF).split("\n");
 						JSONObject localQueryObj = (JSONObject) parser.parse(localQuery[0]);
 						if (localQueryObj.get("response").toString().equals("success")) {
