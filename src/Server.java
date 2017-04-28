@@ -9,6 +9,7 @@ import java.io.RandomAccessFile;
 import java.net.ConnectException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
@@ -23,12 +24,11 @@ import java.util.logging.Logger;
 import javax.net.ServerSocketFactory;
 
 import org.apache.commons.cli.Options;
+import org.apache.commons.lang.RandomStringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-
-import org.apache.commons.lang.*;
 
 public class Server {
 	//public static String secret  = "rxchfgjvhbjknlm24356784irokfjmnv";
@@ -109,11 +109,23 @@ public class Server {
 			Thread interaction= new Thread(() -> timer());
 			interaction.start();
 			
+			
+			
+		
+			
+			
+			
+			
+			
+			
+			
 			// Wait for connections.
 			while(true){
 				Socket client = server.accept();
 				counter++;
 				System.out.println("Client "+counter+": Applying for connection!");
+				
+				
 				
 				
 				// Start a new thread for a connection
@@ -157,15 +169,27 @@ public class Server {
 		    if (inputObj.get("command").toString().equals("query") && inputObj.get("relay").toString().equals("true")) {
 		    	JSONObject tempObj = inputObj;
 		    	tempObj.put("relay", false);
-		    	JSONObject resourceTemplate = (JSONObject) tempObj.get("resourceTemplate");
+		    	JSONObject resourceTemplate = (JSONObject) parser.parse(tempObj.get("resourceTemplate").toString());
 		    	resourceTemplate.put("owner", "");
 		    	resourceTemplate.put("channel", "");
 		    	tempObj.put("resourceTemplate", resourceTemplate);
-		    	
-		    	Thread queryRelay = new Thread( () -> {
-					try {
+		    	/*
+		    	while (queryComplete == false){
+		    		queryRelayResult = getAllQuery(serverList, tempObj.toJSONString() );
+				 }
+				 */
+		    	//Thread queryRelay = new Thread( () -> {
+				try (Socket clientSocketTemp = client){
 					
-						queryRelayResult = getAllQuery(serverList, tempObj.toJSONString() );
+				//System.out.println(queryRelayResult);
+					DataInputStream inputTemp = new DataInputStream(clientSocketTemp.
+							getInputStream());
+					// Output Stream
+				    DataOutputStream outputTemp = new DataOutputStream(clientSocketTemp.
+				    		getOutputStream());
+				  
+					//System.out.println(queryRelayResult);
+				    queryRelayResult = getAllQuery(serverList, tempObj.toJSONString() );
 						String[] localQuery = command.parseCommand(inputUTF).split("\n");
 						JSONObject localQueryObj = (JSONObject) parser.parse(localQuery[0]);
 						if (localQueryObj.get("response").toString().equals("success")) {
@@ -179,10 +203,11 @@ public class Server {
 							resultSize.put("resultSize", size);
 							finalQueryResult += resultSize.toJSONString() + "\n";
 							System.out.println(finalQueryResult);
-							output.writeUTF("Server: Hi Client "+counter+" !!!");
-							output.writeUTF(finalQueryResult);
-							output.flush();
+							outputTemp.writeUTF("Server: Hi Client "+counter+" !!!");
+							outputTemp.writeUTF(finalQueryResult);
+							outputTemp.flush();
 						}
+						
 						
 					} catch (ParseException e) {
 						// TODO Auto-generated catch block
@@ -194,7 +219,8 @@ public class Server {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-				}); 
+				//}); 
+		    	//queryRelay.start();
 		   
 		    }
 		  
@@ -312,7 +338,7 @@ public class Server {
 		    	if(input.available() > 0) {
 	
 	                String message = input.readUTF();
-	                System.out.println(message);
+	                //System.out.println(message);
 	                return message;
 		    	}
 	    	}
@@ -356,7 +382,7 @@ public class Server {
 	}
 	public static void timer(){
 		Timer myTimer = new Timer();  
-		myTimer.schedule(new Timertest(), 1000  * 60 * 5 ,1000 * exchangeinterval);
+		myTimer.schedule(new Timertest(), 1000  * exchangeinterval ,1000 * exchangeinterval);
 	}
 
 	public static void setExchangeinterval(int exchangeinterval) {
