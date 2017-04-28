@@ -39,6 +39,7 @@ public class CommandLineHandle {
 		options.addOption("port", true, "server port, an integer");
 		options.addOption("secret", true, "secret");
 		options.addOption("debug", false, "print debug information");
+		options.addOption("exchangeinterval",true,"exchange interval in seconds");
 		return options;
 		}
 	
