@@ -41,7 +41,7 @@ public class Server {
 
 	// Identifies the user number connected
 	private static int counter = 0;
-	private static int exchangeinterval = 5;
+	private static int exchangeinterval = 10 * 60;
 	public static String resourceFolder="./Resource/";
 	//filename which stores resource information
 	
