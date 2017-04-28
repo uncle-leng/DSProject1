@@ -91,9 +91,9 @@ public class CommandLineHandle {
 			if (line.hasOption("publish") 
 					|| line.hasOption("remove") 
 					|| line.hasOption("share")){
-				if (line.hasOption("publish")) {command.setCommand("publish");}
-				if (line.hasOption("remove")) {command.setCommand("remove");}
-				if (line.hasOption("share")) {command.setCommand("share");}
+				if (line.hasOption("publish")) {command.setCommand("PUBLISH");}
+				if (line.hasOption("remove")) {command.setCommand("REMOVE");}
+				if (line.hasOption("share")) {command.setCommand("SHARE");}
 				
 				//resource
 				if (line.hasOption("channel")) {command.getResource().setter("channel", line.getOptionValue("channel"));}
@@ -108,8 +108,8 @@ public class CommandLineHandle {
 			}
 			else if(line.hasOption("query") 
 					|| line.hasOption("fetch")){
-				if (line.hasOption("fetch")) {command.setCommand("fetch");}
-				if (line.hasOption("query")) {command.setCommand("query");}
+				if (line.hasOption("fetch")) {command.setCommand("FETCH");}
+				if (line.hasOption("query")) {command.setCommand("QUERY");}
 				
 				//resourceTemplate
 				if (line.hasOption("channel")) {command.resourceTemplate.setter("channel", line.getOptionValue("channel"));}
@@ -124,7 +124,7 @@ public class CommandLineHandle {
 				
 			}
 			else if(line.hasOption("exchange")){
-				command.setCommand("exchange");
+				command.setCommand("EXCHANGE");
 				//if (line.hasOption("serverList")) {command.resource.setter("ezserver", line.getOptionValue("ezserver"));}
 				if (line.hasOption("servers")) {command.addServer(line.getOptionValue("servers"));}//to be improved
 			}

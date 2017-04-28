@@ -125,30 +125,30 @@ public class Command {
 	public JSONObject toJSON(){
 		JSONObject JSONcmd=new JSONObject();
 		switch(this.command){
-		case "publish":
-			JSONcmd.put("command", "publish");
+		case "PUBLISH":
+			JSONcmd.put("command", "PUBLISH");
 			JSONcmd.put("resource", resource.toJSON().toJSONString());
 			break;
-		case "remove":
-			JSONcmd.put("command", "remove");
+		case "REMOVE":
+			JSONcmd.put("command", "REMOVE");
 			JSONcmd.put("resource", resource.toJSON().toJSONString());
 			break;
-		case "share":
-			JSONcmd.put("command", "share");
+		case "SHARE":
+			JSONcmd.put("command", "SHARE");
 			JSONcmd.put("secret", this.getSecret());
 			JSONcmd.put("resource", resource.toJSON().toJSONString());
 			break;
-		case "query":
-			JSONcmd.put("command", "query");
+		case "QUERY":
+			JSONcmd.put("command", "QUERY");
 			JSONcmd.put("relay", this.relay);
 			JSONcmd.put("resourceTemplate", resourceTemplate.toJSON().toJSONString());
 			break;
-		case "fetch":
-			JSONcmd.put("command", "fetch");
+		case "FETCH":
+			JSONcmd.put("command", "FETCH");
 			JSONcmd.put("resourceTemplate", resourceTemplate.toJSON().toJSONString());
 			break;
-		case "exchange":
-			JSONcmd.put("command", "exchange");
+		case "EXCHANGE":
+			JSONcmd.put("command", "EXCHANGE");
 			JSONcmd.put("serverList", serverList.toJSONString());
 			//JSONcmd.put("resourceTemplate", resourceTemplate.toJSON().toJSONString());
 			break;
@@ -176,22 +176,22 @@ public class Command {
 			return response.toJSONString();
 		}
 		switch(jsonCommand.get("command").toString()) {
-		case "publish":
+		case "PUBLISH":
 			result=publish(jsonCommand); // call publish function
 			break;
-		case "remove":
+		case "REMOVE":
 			result=remove(jsonCommand);
 			break;
-		case "share":
+		case "SHARE":
 			result=share(jsonCommand);
 			break;
-		case "query":
+		case "QUERY":
 			result=query(jsonCommand);
 			break;
-		case "fetch":
+		case "FETCH":
 			result=fetch(jsonCommand);
 			break;
-		case "exchange":
+		case "EXCHANGE":
 			//System.out.println("exchangeexchange");
 			result=exchange(jsonCommand);
 			break;
