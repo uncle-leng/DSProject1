@@ -278,9 +278,9 @@ public class Server {
 		    
 		  //  output.writeUTF("Server: Hi Client "+counter+" !!!");
 		    output.writeUTF(response);
-		    if(command.getCommand().equals("fetch") ){
+		    if(command.getCommand().equals("FETCH") ){
 		     	responseObj = (JSONObject) parser.parse(response); 	
-		     	if(responseObj.get("response").equals("success")){
+		     	if(responseObj.get("response").equals("success") && command.isFetchSuccess()){
 				String ftfilename=command.getResourceTemplate().getPK().replaceAll(":", "").replaceAll("/", "")+".json";
 				String filePath=Server.resourceFolder+ftfilename;
 				File resfile = new File(filePath);
@@ -310,11 +310,17 @@ public class Server {
 					output.write(Arrays.copyOf(sendingBuffer, num));
 				}
 				byteFile.close();
-				JSONObject resourceSize = new JSONObject();
-				resourceSize.put("resourceSize", fileSize);
-				output.writeUTF(resourceSize.toJSONString());
+				JSONObject resultSize = new JSONObject();
+				resultSize.put("resultSize", 1);
+				output.writeUTF(resultSize.toJSONString());
 			}
+				
 		    }
+		     	else{
+					JSONObject resultSize = new JSONObject();
+					resultSize.put("resultSize", 0);
+					output.writeUTF(resultSize.toJSONString());
+				}
 		    //output.writeUTF("over");
 		    }
 		    }

@@ -80,8 +80,7 @@ public class Client {
 			try{
 					String message = input.readUTF();
 					System.out.println(message);
-
-					// message = input.readUTF();
+					
 					if (commandLine.debug(args, options)) {
 						logger.fine("RECEIVED:" + message);
 					}
@@ -94,13 +93,16 @@ public class Client {
 //		}
 					// System.out.println(message);
 					if (!outCommand.isEmpty()) {
-						if (outCommand.get("command").toString().equals("fetch")) {
+						if (outCommand.get("command").toString().equals("FETCH")) {
 							String resource = input.readUTF();
 							System.out.println( resource);
 							if (commandLine.debug(args, options)) {
 								logger.fine("RECEIVED:" + resource);
 							}
+							
+							
 								JSONObject jsonResource = (JSONObject) parser.parse(resource);
+								if(jsonResource.containsKey("resultSize"))return;
 								File clientfile = new File("clientfile");
 								
 								if(!clientfile.isDirectory()){
@@ -146,10 +148,10 @@ public class Client {
 								}
 								downloadingFile.close();
 
-								String resourceSize = input.readUTF();
-								System.out.println(resourceSize);
+								String resultSize = input.readUTF();
+								System.out.println(resultSize);
 								if (commandLine.debug(args, options)) {
-									logger.fine("RECEIVED:" + resourceSize);
+									logger.fine("RECEIVED:" + resultSize);
 								}
 							}
 						

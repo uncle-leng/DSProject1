@@ -44,10 +44,15 @@ public class Command {
 	private boolean relay;
 	private JSONArray serverList;
 	public Resource resourceTemplate;
+	private boolean fetchSuccess;
 	//public Serverlist serverList;
 	//public JSONObject resourceTemplate;
 	//public boolean debug;
 	
+	public boolean isFetchSuccess() {
+		return fetchSuccess;
+	}
+
 	public Command() throws URISyntaxException{
 		command="";
 		secret="";
@@ -57,6 +62,7 @@ public class Command {
 		serverList = new JSONArray();
 		//resourceTemplate=new Resource().toJSON();
 		resourceTemplate = new Resource();
+		fetchSuccess = false;
 		//debug=false;
 	}
 	
@@ -127,29 +133,29 @@ public class Command {
 		switch(this.command){
 		case "PUBLISH":
 			JSONcmd.put("command", "PUBLISH");
-			JSONcmd.put("resource", resource.toJSON().toJSONString());
+			JSONcmd.put("resource", resource.toJSON());
 			break;
 		case "REMOVE":
 			JSONcmd.put("command", "REMOVE");
-			JSONcmd.put("resource", resource.toJSON().toJSONString());
+			JSONcmd.put("resource", resource.toJSON());
 			break;
 		case "SHARE":
 			JSONcmd.put("command", "SHARE");
 			JSONcmd.put("secret", this.getSecret());
-			JSONcmd.put("resource", resource.toJSON().toJSONString());
+			JSONcmd.put("resource", resource.toJSON());
 			break;
 		case "QUERY":
 			JSONcmd.put("command", "QUERY");
 			JSONcmd.put("relay", this.relay);
-			JSONcmd.put("resourceTemplate", resourceTemplate.toJSON().toJSONString());
+			JSONcmd.put("resourceTemplate", resourceTemplate.toJSON());
 			break;
 		case "FETCH":
 			JSONcmd.put("command", "FETCH");
-			JSONcmd.put("resourceTemplate", resourceTemplate.toJSON().toJSONString());
+			JSONcmd.put("resourceTemplate", resourceTemplate.toJSON());
 			break;
 		case "EXCHANGE":
 			JSONcmd.put("command", "EXCHANGE");
-			JSONcmd.put("serverList", serverList.toJSONString());
+			JSONcmd.put("serverList", serverList);
 			//JSONcmd.put("resourceTemplate", resourceTemplate.toJSON().toJSONString());
 			break;
 		default:break;
@@ -425,10 +431,6 @@ public class Command {
 	}
 	
 	public boolean intersection(ArrayList<String> l1, ArrayList<String> l2) {
-		//List list = new ArrayList(Arrays.asList(new Object[l1.size()])); 
-		//Collections.copy(list, l1); 
-        //list.retainAll(l2); 
-
 		l1.retainAll(l2);
         if (l1.size() == 0) {
         	return false;
@@ -455,18 +457,6 @@ public class Command {
 		{
 			match = true;
 		}
-
-	
-
-		/*
-		System.out.println(channelMatch);
-		System.out.println(ownerMatch);
-		System.out.println(tagMatch);
-		System.out.println(uriMatch);
-		System.out.println(nameAndDesMatch);
-		System.out.println();
-		*/
-
 		return match;
 	}
 	
@@ -637,7 +627,7 @@ public class Command {
 		return response.toJSONString();
 	}
 	public String fetch(JSONObject cmd) throws URISyntaxException{
-		this.command = "fetch";
+		this.command = "FETCH";
 		JSONObject response=new JSONObject();
 //		if(cmd.get("resourceTemplate") == null){
 //			response.put("response", "error");
@@ -655,37 +645,21 @@ public class Command {
 			return response.toJSONString();
 		}
 		File file=new File("Resource");
-		if(file.exists()&&file.isDirectory()){
+			response.put("response", "success");
 			String[] filelist=file.list();
 			ArrayList<String> list=new ArrayList();
 			for(String tempfile:filelist){
 				list.add(tempfile);
 			}
 			if(list.contains(ftfilename)){
+				this.fetchSuccess = true;
 				String filepath=Server.resourceFolder+ftfilename;
 				File ftfile=new File(filepath);
-				response.put("response", "success");
-//				if(ftfile.delete())
-//				{
-//					response.put("response", "success");
-//				}
-//				else
-//				{
-//					response.put("response", "error");
-//					response.put("errorMessage", "cannot remove resource");
-//				}
-//			}
-//			else{
-//				response.put("response", "error");
-//				response.put("errorMessage", "cannot remove resource");
-//			}
+				
+				
+//				
 			}
-		}
-		else{
-			response.put("response", "error");
-			response.put("errorMessage", "invalid resourceTemplate");
 		
-		}
 		return response.toJSONString();
 		
 	}
