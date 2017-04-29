@@ -218,7 +218,7 @@ public class Server {
 							if (dup == false && !serverRecord.split(":")[0]
 									.equals(InetAddress.getLocalHost().toString().split("/")[1])) {
 								serverList.add(serverRecord);
-								System.out.println(ip + ":" + port);
+								//System.out.println(ip + ":" + port);
 							}
 
 						}
@@ -253,13 +253,13 @@ public class Server {
 						File f = new File(resourceURI);
 						if (f.exists()) {
 							RandomAccessFile byteFile = new RandomAccessFile(f, "r");
-							System.out.println(f.length());
+							//System.out.println(f.length());
 
 							byte[] sendingBuffer = new byte[1024 * 1024];
 							int num;
 							// While there are still bytes to send..
 							while ((num = byteFile.read(sendingBuffer)) > 0) {
-								System.out.println(num);
+								//System.out.println(num);
 								output.write(Arrays.copyOf(sendingBuffer, num));
 							}
 							byteFile.close();
@@ -299,10 +299,10 @@ public class Server {
 				}
 			}
 		} catch (ConnectException e) {
-			System.out.println("Invild Host" + ip);
+			System.out.println("Invild Host " + ip);
 			return "error";
 		} catch (UnknownHostException e) {
-			System.out.println("invalid host" + ip);
+			System.out.println("invalid host " + ip);
 			return "error";
 
 		} catch (IOException e) {
