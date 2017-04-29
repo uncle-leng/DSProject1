@@ -65,25 +65,36 @@ public class Client {
 				logger.info("setting debug on");
 				logger.fine("SENT:" + outCommand);
 			}
-			// while(true){
-			// if (input.available() > 0){
-			//
-			try {
-				String message = input.readUTF();
-				System.out.println(message);
-
-				if (commandLine.debug(args, options)) {
-					logger.fine("RECEIVED:" + message);
-				}
-			} catch (EOFException e) {
-
-			}
-			// break;
-
-			// }
-			// }
+			
 			if (!outCommand.isEmpty()) {
-				if (outCommand.get("command").toString().equals("FETCH")) {
+				if (!outCommand.get("command").toString().equals("FETCH")) {
+					while (true) {
+						if (input.available() > 0) {
+
+							try {
+								String message = input.readUTF();
+								System.out.println(message);
+
+								if (commandLine.debug(args, options)) {
+									logger.fine("RECEIVED:" + message);
+								}
+							} catch (EOFException e) {
+
+							}
+						}
+					}
+				} else {
+					try {
+						String message = input.readUTF();
+						System.out.println(message);
+
+						if (commandLine.debug(args, options)) {
+							logger.fine("RECEIVED:" + message);
+						}
+					} catch (EOFException e) {
+
+					}
+
 					String resource = input.readUTF();
 					System.out.println(resource);
 					if (commandLine.debug(args, options)) {
