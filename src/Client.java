@@ -25,8 +25,7 @@ public class Client {
 	// IP and port
 	private static String host = "localhost";
 	private static int port = 3000;
-	
-	
+
 	private static CommandLineHandle commandLine = new CommandLineHandle();
 	private static Options options = commandLine.getOptions();
 
@@ -50,17 +49,9 @@ public class Client {
 		JSONObject outCommand = commandLine.parse(args, options);
 		String out = outCommand.toString();
 		JSONParser parser = new JSONParser();
-		// System.out.println(out);
 		try (Socket socket = new Socket(host, port)) {
-			// Output and Input Stream
 			DataInputStream input = new DataInputStream(socket.getInputStream());
 			DataOutputStream output = new DataOutputStream(socket.getOutputStream());
-
-			// String outCommand = commandLine.parse(args, options);
-			// System.out.println(outCommand);
-
-			// output.writeUTF(outCommand);
-
 			output.writeUTF(out);
 			output.flush();
 
@@ -74,93 +65,84 @@ public class Client {
 				logger.info("setting debug on");
 				logger.fine("SENT:" + outCommand);
 			}
-//			while(true){
-//			if (input.available() > 0){
-//			
-			try{
-					String message = input.readUTF();
-					System.out.println(message);
-					
+			// while(true){
+			// if (input.available() > 0){
+			//
+			try {
+				String message = input.readUTF();
+				System.out.println(message);
+
+				if (commandLine.debug(args, options)) {
+					logger.fine("RECEIVED:" + message);
+				}
+			} catch (EOFException e) {
+
+			}
+			// break;
+
+			// }
+			// }
+			if (!outCommand.isEmpty()) {
+				if (outCommand.get("command").toString().equals("FETCH")) {
+					String resource = input.readUTF();
+					System.out.println(resource);
 					if (commandLine.debug(args, options)) {
-						logger.fine("RECEIVED:" + message);
+						logger.fine("RECEIVED:" + resource);
 					}
-			}catch(EOFException e){
-				
-			}
-					//break;
-				
-//			}
-//		}
-					// System.out.println(message);
-					if (!outCommand.isEmpty()) {
-						if (outCommand.get("command").toString().equals("FETCH")) {
-							String resource = input.readUTF();
-							System.out.println( resource);
-							if (commandLine.debug(args, options)) {
-								logger.fine("RECEIVED:" + resource);
+
+					JSONObject jsonResource = (JSONObject) parser.parse(resource);
+					if (jsonResource.containsKey("resultSize"))
+						return;
+					File clientfile = new File("clientfile");
+
+					if (!clientfile.isDirectory()) {
+
+						clientfile.mkdir();
+
+					}
+					String fileName = "clientfile/";
+					if (jsonResource.get("name").toString().equals("")) {
+						fileName += "nonamefile";
+					} else {
+						fileName += jsonResource.get("name").toString();
+					}
+					long fileSizeRemaining = Long.parseLong(jsonResource.get("resourceSize").toString());
+					RandomAccessFile downloadingFile = new RandomAccessFile(fileName, "rw");
+
+					int chunkSize = setChunkSize(fileSizeRemaining);
+					byte[] receiveBuffer = new byte[chunkSize];
+					int num;
+
+					System.out.println("Downloading " + fileName + " of size " + fileSizeRemaining);
+					try {
+						while ((num = input.read(receiveBuffer)) > 0) {
+							downloadingFile.write(Arrays.copyOf(receiveBuffer, num));
+
+							fileSizeRemaining -= num;
+
+							chunkSize = setChunkSize(fileSizeRemaining);
+							receiveBuffer = new byte[chunkSize];
+
+							if (fileSizeRemaining == 0) {
+								break;
 							}
-							
-							
-								JSONObject jsonResource = (JSONObject) parser.parse(resource);
-								if(jsonResource.containsKey("resultSize"))return;
-								File clientfile = new File("clientfile");
-								
-								if(!clientfile.isDirectory()){
-									 
-										 			clientfile.mkdir();
-										             
-								}
-								String fileName = "clientfile/";
-								if (jsonResource.get("name").toString().equals("")){
-									fileName += "nonamefile";
-								}
-								else{
-								fileName+= jsonResource.get("name").toString();
-								}
-								long fileSizeRemaining = Long.parseLong(jsonResource.get("resourceSize").toString());
-								RandomAccessFile downloadingFile = new RandomAccessFile(fileName, "rw");
+						}
+					} catch (EOFException e) {
 
-								int chunkSize = setChunkSize(fileSizeRemaining);
-								byte[] receiveBuffer = new byte[chunkSize];
-								int num;
+					}
+					downloadingFile.close();
 
-								System.out.println("Downloading " + fileName + " of size " + fileSizeRemaining);
-								try {
-									while ((num = input.read(receiveBuffer)) > 0) {
-										// Write the received bytes into the
-										// RandomAccessFile
-										downloadingFile.write(Arrays.copyOf(receiveBuffer, num));
+					String resultSize = input.readUTF();
+					System.out.println(resultSize);
+					if (commandLine.debug(args, options)) {
+						logger.fine("RECEIVED:" + resultSize);
+					}
+				}
 
-										// Reduce the file size left to read..
-										fileSizeRemaining -= num;
-
-										// Set the chunkSize again
-										chunkSize = setChunkSize(fileSizeRemaining);
-										receiveBuffer = new byte[chunkSize];
-
-										// If you're done then break
-										if (fileSizeRemaining == 0) {
-											break;
-										}
-									}
-								} catch (EOFException e) {
-
-								}
-								downloadingFile.close();
-
-								String resultSize = input.readUTF();
-								System.out.println(resultSize);
-								if (commandLine.debug(args, options)) {
-									logger.fine("RECEIVED:" + resultSize);
-								}
-							}
-						
-					
-				
 			}
 
-		} 
-	
+		}
+
 		catch (UnknownHostException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -170,11 +152,7 @@ public class Client {
 	}
 
 	public static int setChunkSize(long fileSizeRemaining) {
-		// Determine the chunkSize
 		int chunkSize = 1024 * 1024;
-
-		// If the file size remaining is less than the chunk size
-		// then set the chunk size to be equal to the file size.
 		if (fileSizeRemaining < chunkSize) {
 			chunkSize = (int) fileSizeRemaining;
 		}

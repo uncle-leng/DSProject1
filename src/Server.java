@@ -1,4 +1,4 @@
-	
+
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -24,7 +24,6 @@ import java.util.logging.Logger;
 
 import javax.net.ServerSocketFactory;
 
-
 import org.apache.commons.cli.Options;
 import org.apache.commons.lang.RandomStringUtils;
 import org.json.simple.JSONArray;
@@ -33,22 +32,21 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 public class Server {
-	//public static String secret  = "rxchfgjvhbjknlm24356784irokfjmnv";
-	public static String secret  = RandomStringUtils.randomAlphanumeric(32);
+	// public static String secret = "rxchfgjvhbjknlm24356784irokfjmnv";
+	public static String secret = RandomStringUtils.randomAlphanumeric(32);
 	// Declare the port number
 	private static int port = 3000;
 	private static String hostName = "Default Hostname";
 	private static int connectionIntervallimit = 1;
-	
 
 	// Identifies the user number connected
 	private static int counter = 0;
 	private static int exchangeinterval = 10 * 60;
-	public static String resourceFolder="./Resource/";
-	//filename which stores resource information
-	
+	public static String resourceFolder = "./Resource/";
+	// filename which stores resource information
+
 	static ArrayList<String> serverList = new ArrayList<String>();
-	
+
 	public static void setHostName(String hostName) {
 		Server.hostName = hostName;
 	}
@@ -57,83 +55,51 @@ public class Server {
 		Server.connectionIntervallimit = connectionIntervallimit;
 	}
 
-
 	// Identifies the user number connected
-	//private static int counter = 0;
-	//private static int exchangeinterval = 5;
-	//public static String resourceFolder="./Resource/";
-	//filename which stores resource information
-	
-	//private static ArrayList<String> serverList = new ArrayList<String>();
 	private static boolean queryComplete = false;
 	private static String queryRelayResult = "";
-	
-	
 
 	public static void main(String[] args) throws URISyntaxException {
 
-
 		CommandLineHandle commandLine = new CommandLineHandle();
-		Options options=commandLine.getServerOptions();
+		Options options = commandLine.getServerOptions();
 		commandLine.parseServerCmd(args, options);
-		if(commandLine.debug(args,options)){
-			Logger logger=Logger.getLogger("Server");
-	    	logger.setLevel(Level.ALL);
-	    	logger.info("Starting the EZShare Server");
-	    	logger.info("using secret:"+Server.secret);
-	    	logger.info("using advertised hostname: "+Server.hostName);
-	    	logger.info("bound to port "+Server.port);
-	    	logger.info("started");
-	    }
-
+		if (commandLine.debug(args, options)) {
+			Logger logger = Logger.getLogger("Server");
+			logger.setLevel(Level.ALL);
+			logger.info("Starting the EZShare Server");
+			logger.info("using secret:" + Server.secret);
+			logger.info("using advertised hostname: " + Server.hostName);
+			logger.info("bound to port " + Server.port);
+			logger.info("started");
+		}
 
 		ServerSocketFactory factory = ServerSocketFactory.getDefault();
-		try(ServerSocket server = factory.createServerSocket(port)){
+		try (ServerSocket server = factory.createServerSocket(port)) {
 			System.out.println("Server waiting for client connection..");
-			
+
 			Command command = new Command();
 			JSONParser parser = new JSONParser();
-			//String input = 
-			//JSONObject commandObj = (JSONObject) parser.parse()
-			
+			// String input =
+
 			for (String hostRecord : serverList) {
 				String ip = hostRecord.split(":")[0];
 				int port = Integer.parseInt(hostRecord.split(":")[1]);
-				//Thread queryRelay = new Thread( () -> client(ip, port, ))
+				// Thread queryRelay = new Thread( () -> client(ip, port, ))
 			}
-			
-			
-			
-			
-			
-			
-			
-			Thread interaction= new Thread(() -> timer());
+
+			Thread interaction = new Thread(() -> timer());
 			interaction.start();
-			
-			
-			
-		
-			
-			
-			
-			
-			
-			
-			
 			// Wait for connections.
-			while(true){
+			while (true) {
 				Socket client = server.accept();
 				counter++;
-				System.out.println("Client "+counter+": Applying for connection!");
-				
-				
-				
-				
+				System.out.println("Client " + counter + ": Applying for connection!");
+
 				// Start a new thread for a connection
 				Thread t = new Thread(() -> {
 					try {
-						
+
 						serveClient(client);
 					} catch (URISyntaxException e) {
 						// TODO Auto-generated catch block
@@ -142,237 +108,213 @@ public class Server {
 				});
 				t.start();
 			}
-			
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
-		
 	}
-	
-	private static void serveClient(Socket client) throws URISyntaxException{
-		Command command=new Command();
+
+	private static void serveClient(Socket client) throws URISyntaxException {
+		Command command = new Command();
 		JSONParser parser = new JSONParser();
-		
-		
-		try(Socket clientSocket = client){
+
+		try (Socket clientSocket = client) {
 			// Input stream
-			DataInputStream input = new DataInputStream(clientSocket.
-					getInputStream());
+			DataInputStream input = new DataInputStream(clientSocket.getInputStream());
 			// Output Stream
-		    DataOutputStream output = new DataOutputStream(clientSocket.
-		    		getOutputStream());
-		    String inputUTF = input.readUTF();
-		    JSONObject responseObj = new JSONObject();
-		    JSONObject inputObj = (JSONObject) parser.parse(inputUTF);
-		    //String response = "";
-		    
-		    //System.out.println(inputObj);
-		    if (inputObj.containsKey("relay")&&inputObj.get("command").toString().equals("QUERY") && inputObj.get("relay").toString().equals("true")) {
+			DataOutputStream output = new DataOutputStream(clientSocket.getOutputStream());
+			String inputUTF = input.readUTF();
+			JSONObject responseObj = new JSONObject();
+			JSONObject inputObj = (JSONObject) parser.parse(inputUTF);
+			// String response = "";
 
-		    	JSONObject tempObj = inputObj;
-		    	tempObj.put("relay", false);
-		    	JSONObject resourceTemplate = (JSONObject) parser.parse(tempObj.get("resourceTemplate").toString());
-		    	resourceTemplate.put("owner", "");
-		    	resourceTemplate.put("channel", "");
-		    	tempObj.put("resourceTemplate", resourceTemplate);
-		    	/*
-		    	while (queryComplete == false){
-		    		queryRelayResult = getAllQuery(serverList, tempObj.toJSONString() );
-				 }
+			// System.out.println(inputObj);
+			if (inputObj.containsKey("relay") && inputObj.get("command").toString().equals("QUERY")
+					&& inputObj.get("relay").toString().equals("true")) {
+
+				JSONObject tempObj = inputObj;
+				tempObj.put("relay", false);
+				JSONObject resourceTemplate = (JSONObject) parser.parse(tempObj.get("resourceTemplate").toString());
+				resourceTemplate.put("owner", "");
+				resourceTemplate.put("channel", "");
+				tempObj.put("resourceTemplate", resourceTemplate);
+				/*
+				 * while (queryComplete == false){ queryRelayResult =
+				 * getAllQuery(serverList, tempObj.toJSONString() ); }
 				 */
-		    	//Thread queryRelay = new Thread( () -> {
-				try (Socket clientSocketTemp = client){
-					queryRelayResult = getAllQuery(serverList, tempObj.toJSONString() );
-				//System.out.println(queryRelayResult);
-					DataInputStream inputTemp = new DataInputStream(clientSocketTemp.
-							getInputStream());
+				// Thread queryRelay = new Thread( () -> {
+				try (Socket clientSocketTemp = client) {
+					queryRelayResult = getAllQuery(serverList, tempObj.toJSONString());
+					// System.out.println(queryRelayResult);
+					DataInputStream inputTemp = new DataInputStream(clientSocketTemp.getInputStream());
 					// Output Stream
-				    DataOutputStream outputTemp = new DataOutputStream(clientSocketTemp.
-				    		getOutputStream());
-				  
-					//System.out.println(queryRelayResult);
-				    
-						String[] localQuery = command.parseCommand(inputUTF).split("\n");
-						JSONObject localQueryObj = (JSONObject) parser.parse(localQuery[0]);
-						if (localQueryObj.get("response").toString().equals("success")) {
-							String finalQueryResult = "";
-							for (int i = 0; i < localQuery.length - 1; i++) {
-								finalQueryResult += localQuery[i] + "\n";
-							}
-							finalQueryResult += queryRelayResult;
-							int size = finalQueryResult.split("\n").length  - 1;
-							JSONObject resultSize = new JSONObject();
-							resultSize.put("resultSize", size);
-							finalQueryResult += resultSize.toJSONString() + "\n";
-							System.out.println(finalQueryResult);
-							outputTemp.writeUTF("Server: Hi Client "+counter+" !!!");
-							outputTemp.writeUTF(finalQueryResult);
-							outputTemp.flush();
-						}
-						
-						
-					} catch (ParseException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (URISyntaxException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				//}); 
-		    	//queryRelay.start();
-		   
-		    }
-		  
-		    else{
-		    
-		   String response=command.parseCommand(inputUTF);
-		  // System.out.println(input.readUTF());
-		    
-		    System.out.println(response);
-		    
-		    
-		    //System.out.println(responseObj.get("response"));
-		    
-		    
-		    
-		    
-		    if(!inputObj.isEmpty()){
-		    if (! inputObj.get("command").toString().equals("query")) {
-		    	responseObj = (JSONObject) parser.parse(response);
-		    }
-		    //System.out.println(inputObj.get("command"));
-		    if (inputObj.get("command").toString().equals("exchange")
-		    		&& responseObj.get("response").toString().equals("success")
-		    		) {
-		    	String serverListStr = inputObj.get("serverList").toString();
-		    	JSONArray serverArray = (JSONArray) parser.parse(serverListStr);
-		    	for (int i = 0; i < serverArray.size(); i++) {
-		    		boolean dup = false;
-		    		String ip = serverArray.get(i).toString().split(",")[0].split(":")[1].replaceAll("\"", "");
-					String port = serverArray.get(i).toString().split(",")[1].split(":")[1].replace("}", "").replaceAll("\"", "");
-					String serverRecord = ip + ":" + port;
-					for (int j = 0; j < serverList.size(); j++) {
-						if (serverList.get(j).equals(serverRecord)) {
-							dup = true;
-						}
-					}
-					if (dup == false && !serverRecord.split(":")[0].equals(InetAddress.getLocalHost().toString().split("/")[1])){
-					serverList.add(serverRecord);
-					System.out.println(ip + ":" + port);
-					}
-					
-					
-		    	}
-//		    	Thread t = new Thread(() -> Client());
-//				t.start();
-		    	//System.out.println(serverList);
-		    	
-		    }
-		    }
-		    
-		  //System.out.println("hhhh");
-		    
-		  //  output.writeUTF("Server: Hi Client "+counter+" !!!");
-		    output.writeUTF(response);
-		    if(command.getCommand().equals("FETCH") ){
-		     	responseObj = (JSONObject) parser.parse(response); 	
-		     	if(responseObj.get("response").equals("success") && command.isFetchSuccess()){
-				String ftfilename=command.getResourceTemplate().getPK().replaceAll(":", "").replaceAll("/", "")+".json";
-				String filePath=Server.resourceFolder+ftfilename;
-				File resfile = new File(filePath);
-				BufferedReader reader = null;
-				reader = new BufferedReader(new FileReader(resfile));
-				String tempString = reader.readLine();
-				output.writeUTF(tempString);
-				System.out.println(tempString);
-				JSONObject jsonResourceFile  = (JSONObject) parser.parse(tempString);
-				Resource fetres=new Resource(jsonResourceFile);
-				
-				int fileSize = Integer.parseInt(jsonResourceFile.get("resourceSize").toString());
-				URI resourceURI = fetres.getUri();
-		    		
-		    		
-				//File f = new File(command.resourceTemplate.uri.toString());
-				File f = new File(resourceURI);
-				if(f.exists()){
-				RandomAccessFile byteFile = new RandomAccessFile(f,"r");
-				System.out.println(f.length());
+					DataOutputStream outputTemp = new DataOutputStream(clientSocketTemp.getOutputStream());
 
-				byte[] sendingBuffer = new byte[1024*1024];
-				int num;
-				// While there are still bytes to send..
-				while((num = byteFile.read(sendingBuffer)) > 0){
-					System.out.println(num);
-					output.write(Arrays.copyOf(sendingBuffer, num));
+					// System.out.println(queryRelayResult);
+
+					String[] localQuery = command.parseCommand(inputUTF).split("\n");
+					JSONObject localQueryObj = (JSONObject) parser.parse(localQuery[0]);
+					if (localQueryObj.get("response").toString().equals("success")) {
+						String finalQueryResult = "";
+						for (int i = 0; i < localQuery.length - 1; i++) {
+							finalQueryResult += localQuery[i] + "\n";
+						}
+						finalQueryResult += queryRelayResult;
+						int size = finalQueryResult.split("\n").length - 1;
+						JSONObject resultSize = new JSONObject();
+						resultSize.put("resultSize", size);
+						finalQueryResult += resultSize.toJSONString() + "\n";
+						System.out.println(finalQueryResult);
+						outputTemp.writeUTF("Server: Hi Client " + counter + " !!!");
+						outputTemp.writeUTF(finalQueryResult);
+						outputTemp.flush();
+					}
+
+				} catch (ParseException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (URISyntaxException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
-				byteFile.close();
-				JSONObject resultSize = new JSONObject();
-				resultSize.put("resultSize", 1);
-				output.writeUTF(resultSize.toJSONString());
+				// });
+				// queryRelay.start();
+
 			}
-				
-		    }
-		     	else{
-					JSONObject resultSize = new JSONObject();
-					resultSize.put("resultSize", 0);
-					output.writeUTF(resultSize.toJSONString());
+
+			else {
+
+				String response = command.parseCommand(inputUTF);
+				// System.out.println(input.readUTF());
+
+				System.out.println(response);
+
+				// System.out.println(responseObj.get("response"));
+
+				if (!inputObj.isEmpty()) {
+					if (!inputObj.get("command").toString().equals("query")) {
+						responseObj = (JSONObject) parser.parse(response);
+					}
+					// System.out.println(inputObj.get("command"));
+					if (inputObj.get("command").toString().equals("exchange")
+							&& responseObj.get("response").toString().equals("success")) {
+						String serverListStr = inputObj.get("serverList").toString();
+						JSONArray serverArray = (JSONArray) parser.parse(serverListStr);
+						for (int i = 0; i < serverArray.size(); i++) {
+							boolean dup = false;
+							String ip = serverArray.get(i).toString().split(",")[0].split(":")[1].replaceAll("\"", "");
+							String port = serverArray.get(i).toString().split(",")[1].split(":")[1].replace("}", "")
+									.replaceAll("\"", "");
+							String serverRecord = ip + ":" + port;
+							for (int j = 0; j < serverList.size(); j++) {
+								if (serverList.get(j).equals(serverRecord)) {
+									dup = true;
+								}
+							}
+							if (dup == false && !serverRecord.split(":")[0]
+									.equals(InetAddress.getLocalHost().toString().split("/")[1])) {
+								serverList.add(serverRecord);
+								System.out.println(ip + ":" + port);
+							}
+
+						}
+						// Thread t = new Thread(() -> Client());
+						// t.start();
+						// System.out.println(serverList);
+
+					}
 				}
-		    //output.writeUTF("over");
-		    }
-		    }
+
+				output.writeUTF(response);
+				if (command.getCommand().equals("FETCH")) {
+					responseObj = (JSONObject) parser.parse(response);
+					if (responseObj.get("response").equals("success") && command.isFetchSuccess()) {
+						String ftfilename = command.getResourceTemplate().getPK().replaceAll(":", "").replaceAll("/",
+								"") + ".json";
+						String filePath = Server.resourceFolder + ftfilename;
+						File resfile = new File(filePath);
+						BufferedReader reader = null;
+						reader = new BufferedReader(new FileReader(resfile));
+						String tempString = reader.readLine();
+						output.writeUTF(tempString);
+						System.out.println(tempString);
+						JSONObject jsonResourceFile = (JSONObject) parser.parse(tempString);
+						Resource fetres = new Resource(jsonResourceFile);
+
+						int fileSize = Integer.parseInt(jsonResourceFile.get("resourceSize").toString());
+						URI resourceURI = fetres.getUri();
+
+						// File f = new
+						// File(command.resourceTemplate.uri.toString());
+						File f = new File(resourceURI);
+						if (f.exists()) {
+							RandomAccessFile byteFile = new RandomAccessFile(f, "r");
+							System.out.println(f.length());
+
+							byte[] sendingBuffer = new byte[1024 * 1024];
+							int num;
+							// While there are still bytes to send..
+							while ((num = byteFile.read(sendingBuffer)) > 0) {
+								System.out.println(num);
+								output.write(Arrays.copyOf(sendingBuffer, num));
+							}
+							byteFile.close();
+							JSONObject resultSize = new JSONObject();
+							resultSize.put("resultSize", 1);
+							output.writeUTF(resultSize.toJSONString());
+						}
+
+					} else {
+						JSONObject resultSize = new JSONObject();
+						resultSize.put("resultSize", 0);
+						output.writeUTF(resultSize.toJSONString());
+					}
+				}
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
-			//System.out.println("IOException");
 		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			
+
 			e.printStackTrace();
-			//System.out.println("ParseException");
 		}
 	}
-	
-	
-	public static String Client(String ip,int port, String command){
-		try(Socket socket = new Socket(ip, port)){
+
+	public static String Client(String ip, int port, String command) {
+		try (Socket socket = new Socket(ip, port)) {
 			// Output and Input Stream
-			DataInputStream input = new DataInputStream(socket.
-					getInputStream());
-		    DataOutputStream output = new DataOutputStream(socket.
-		    		getOutputStream());
-	    	output.writeUTF(command);
-	    	output.flush();
-	    	while(true){
-		    	if(input.available() > 0) {
-	
-	                String message = input.readUTF();
-	                //System.out.println(message);
-	                return message;
-		    	}
-	    	}
-		} catch (ConnectException e){
+			DataInputStream input = new DataInputStream(socket.getInputStream());
+			DataOutputStream output = new DataOutputStream(socket.getOutputStream());
+			output.writeUTF(command);
+			output.flush();
+			while (true) {
+				if (input.available() > 0) {
+
+					String message = input.readUTF();
+					// System.out.println(message);
+					return message;
+				}
+			}
+		} catch (ConnectException e) {
 			System.out.println("Invild Host" + ip);
 			return "error";
-		}
-		catch (UnknownHostException e) {
+		} catch (UnknownHostException e) {
 			System.out.println("invalid host" + ip);
 			return "error";
-			
+
 		} catch (IOException e) {
 			e.printStackTrace();
 			return "error";
 
 		}
 
-		
 	}
-	
-	
-	public static String getAllQuery (ArrayList<String> serverList, String command) throws ParseException {
-		//boolean queryComplete = false;
+
+	public static String getAllQuery(ArrayList<String> serverList, String command) throws ParseException {
+		// boolean queryComplete = false;
 		String queryResult = "";
 		JSONParser parser = new JSONParser();
 		for (String server : serverList) {
@@ -381,23 +323,24 @@ public class Server {
 			String[] queryTemp = Client(ip, port, command).split("\n");
 			JSONObject queryRes = (JSONObject) parser.parse(queryTemp[0]);
 			if (queryRes.get("response").equals("success")) {
-				for (int i = 1; i < queryTemp.length-1; i++) {
+				for (int i = 1; i < queryTemp.length - 1; i++) {
 					queryResult += queryTemp[i] + "\n";
 				}
 			}
-			
+
 		}
 		queryComplete = true;
 		return queryResult;
-		
+
 	}
-	public static void timer(){
-		Timer myTimer = new Timer();  
-		myTimer.schedule(new Timertest(), 1000  * exchangeinterval ,1000 * exchangeinterval);
+
+	public static void timer() {
+		Timer myTimer = new Timer();
+		myTimer.schedule(new Timertest(), 1000 * exchangeinterval, 1000 * exchangeinterval);
 	}
 
 	public static void setExchangeinterval(int exchangeinterval) {
-		Server.exchangeinterval =  exchangeinterval;
+		Server.exchangeinterval = exchangeinterval;
 	}
 
 	public static void setSecret(String secret) {
@@ -413,7 +356,7 @@ public class Server {
 		public void run() {
 			System.out.println("Start automatical exchange...");
 
-			if (serverList.isEmpty()){
+			if (serverList.isEmpty()) {
 				System.out.println("empty serverlist!");
 				return;
 			}
@@ -439,22 +382,21 @@ public class Server {
 
 				output.writeUTF(outCommand);
 				output.flush();
-				
-					if (input.available() > 0) {
 
-						String message = input.readUTF();
-						System.out.println("Server " + serverList.get(rdmint).split(":")[0]);
-						System.out.println("port " + serverList.get(rdmint).split(":")[1]);
-						System.out.println("incoming:");
-						System.out.println(message);
-					}
-				
-			} catch (ConnectException e){
+				if (input.available() > 0) {
+
+					String message = input.readUTF();
+					System.out.println("Server " + serverList.get(rdmint).split(":")[0]);
+					System.out.println("port " + serverList.get(rdmint).split(":")[1]);
+					System.out.println("incoming:");
+					System.out.println(message);
+				}
+
+			} catch (ConnectException e) {
 				System.out.println("Invild Host" + ip);
 				serverList.remove(rdmint);
-				//hahhahahha
-			}
-			catch (UnknownHostException e) {
+				// hahhahahha
+			} catch (UnknownHostException e) {
 				System.out.println("Invild Host" + ip);
 				serverList.remove(rdmint);
 			} catch (IOException e) {
