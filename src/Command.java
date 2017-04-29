@@ -400,6 +400,9 @@ public class Command {
 	}
 
 	public boolean intersection(ArrayList<String> l1, ArrayList<String> l2) {
+		if (l1.size()==0 && l2.size()==0) {
+			return true;
+		}
 		l1.retainAll(l2);
 		if (l1.size() == 0) {
 			return false;
@@ -476,6 +479,9 @@ public class Command {
 				success.put("response", "success");
 				finalResult.add(success);
 				for (JSONObject q : queryResult) {
+					if(q.containsKey("resourceSize")){
+						q.remove("resourceSize");
+					}
 					finalResult.add(q);
 				}
 				JSONObject resultSize = new JSONObject();

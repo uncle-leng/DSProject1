@@ -165,7 +165,7 @@ public class Server {
 						JSONObject resultSize = new JSONObject();
 						resultSize.put("resultSize", size);
 						finalQueryResult += resultSize.toJSONString() + "\n";
-						System.out.println(finalQueryResult);
+						//System.out.println(finalQueryResult);
 						outputTemp.writeUTF("Server: Hi Client " + counter + " !!!");
 						outputTemp.writeUTF(finalQueryResult);
 						outputTemp.flush();
@@ -197,7 +197,9 @@ public class Server {
 
 				if (!inputObj.isEmpty()) {
 					if (!inputObj.get("command").toString().equals("query")) {
-						responseObj = (JSONObject) parser.parse(response);
+						//System.out.println(response);
+						String resStatus = response.split("\n")[0];
+						responseObj = (JSONObject) parser.parse(resStatus);
 					}
 					// System.out.println(inputObj.get("command"));
 					if (inputObj.get("command").toString().equals("exchange")
