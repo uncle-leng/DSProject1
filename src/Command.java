@@ -9,8 +9,12 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.KeyStore.Entry;
 import java.util.ArrayList;
+
 import java.util.Iterator;
 import java.util.Map;
+
+import java.util.HashMap;
+
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -237,19 +241,16 @@ public class Command {
 			response.put("errorMessage", "invalid resource");
 			return response.toJSONString();
 		}
-		ArrayList<String> resourcelist = readFile(Server.resourceFolder);
+		/*ArrayList<String> resourcelist = readFile(Server.resourceFolder);
 		if (resourcelist.size() != 0) {
 			for (int i = 0; i < resourcelist.size(); ++i) {
 				if (!resourcelist.get(i).endsWith(".json")) {
 					resourcelist.remove(i);
 				}
 			}
-		}
-		/*
-		 * if(resourcelist.size()==1&&!resourcelist.get(0).endsWith(".json")){
-		 * resourcelist.remove(0); //resolve bug in macos }
-		 */
-		if (!resourcelist.isEmpty()) {
+		}*/
+		
+		/*if (!resourcelist.isEmpty()) {
 			// same channel and URI but different owner is not allowed
 			for (String tempres : resourcelist) {
 				// System.out.println(tempres);
@@ -259,8 +260,18 @@ public class Command {
 					return response.toJSONString();
 				}
 			}
+		}*/
+		if(!Server.resourceDict.isEmpty()){
+			// same channel and URI but different owner is not allowed
+			for(String tempkey:Server.resourceDict.keySet()){
+				if(newres.isconfict(tempkey)){
+					response.put("response", "error");
+					response.put("errorMessage", "cannot publish resource");
+					return response.toJSONString();
+				}
+			}
 		}
-		try {
+		/*try {
 			String resFilename = newres.getPK().replaceAll("/", "").replaceAll(":", "") + ".json";
 			String filePath = Server.resourceFolder + resFilename;
 			File file = new File("Resource");
@@ -273,7 +284,9 @@ public class Command {
 			response.put("response", "error");
 			response.put("errorMessage", "cannot publish resource");
 			e.printStackTrace();
-		}
+		}*/
+		Server.resourceDict.put(newres.getPK(), newres.toJSON());
+		response.put("response", "success");
 		return response.toJSONString();
 	}
 
@@ -416,6 +429,9 @@ public class Command {
 		if (l1.size()==0 && l2.size()==0) {
 			return true;
 		}
+		if (l2.size() == 0) {
+			return true;
+		}
 		l1.retainAll(l2);
 		if (l1.size() == 0) {
 			return false;
@@ -431,13 +447,15 @@ public class Command {
 		// JSONObject resourceTemplate = (JSONObject)
 		// parser.parse((String)queryJSON.get("resourceTemplate"));
 		Resource rt = new Resource(resourceTemplate);
-		boolean channelMatch = resource.getChannel().equals(rt.getChannel());
-		boolean ownerMatch = resource.getOwner().equals(rt.getOwner());
+		boolean channelMatch = resource.getChannel().equals(rt.getChannel()) || rt.getChannel().equals("");
+		boolean ownerMatch = resource.getOwner().equals(rt.getOwner()) || rt.getOwner().equals("");
 		boolean tagMatch = intersection(resource.getTags(), rt.getTags());
-		boolean uriMatch = resource.getUri().equals(rt.getUri());
+		boolean uriMatch = resource.getUri().equals(rt.getUri()) || rt.getUri().toString().equals("");
 		boolean nameAndDesMatch = (((rt.getName().equals("")) || resource.getName().contains(rt.getName()))
 				|| ((rt.getDescription().equals("")) || resource.getDescription().contains(rt.getDescription()))
 				|| ((rt.getName().equals("")) && rt.getDescription().equals("")));
+
+		
 		if (channelMatch && ownerMatch && tagMatch && uriMatch && nameAndDesMatch) {
 			match = true;
 		}
@@ -559,21 +577,32 @@ public class Command {
 			response.put("errorMessage", "invalid resource3");
 			return response.toJSONString();
 		}
-		ArrayList<String> resourcelist = readFile(Server.resourceFolder);
+		/*ArrayList<String> resourcelist = readFile(Server.resourceFolder);
 		if (resourcelist.size() != 0) {
 			for (int i = 0; i < resourcelist.size(); ++i) {
 				if (!resourcelist.get(i).endsWith(".json")) {
 					resourcelist.remove(i);
 				}
 			}
-		}
-		if (!resourcelist.isEmpty()) {
+		}*/
+		
+		/*if (!Server.resourceDict.isEmpty()) {
 			// same channel and URI but different owner is not allowed
 			for (String tempres : resourcelist) {
 				// System.out.println(tempres);
 				if (shres.isConflict(tempres)) {
 					response.put("response", "error");
 					response.put("errorMessage", "cannot share resource");
+					return response.toJSONString();
+				}
+			}
+		}*/
+		if(!Server.resourceDict.isEmpty()){
+			// same channel and URI but different owner is not allowed
+			for(String tempkey:Server.resourceDict.keySet()){
+				if(shres.isconfict(tempkey)){
+					response.put("response", "error");
+					response.put("errorMessage", "cannot publish resource");
 					return response.toJSONString();
 				}
 			}
@@ -585,28 +614,24 @@ public class Command {
 			return response.toJSONString();
 		} else {
 			try {
-				String resFilename = shres.getPK().replaceAll("/", "").replaceAll(":", "") + ".json";
+				/*String resFilename = shres.getPK().replaceAll("/", "").replaceAll(":", "") + ".json";
 				String filePath = Server.resourceFolder + resFilename;
 				File file = new File("Resource");
 				if (!file.exists()) {
 					file.mkdirs();
-				}
+				}*/
 				File sharefile = new File(shres.getUri());
-				// System.out.println(sharefile.toURI().toString());
+				
 				if (sharefile.exists()) {
 					long size = sharefile.length();
 					shresJSON.put("resourceSize", size);
 
-					writeFile(filePath, shresJSON.toJSONString());
+					Server.resourceDict.put(shres.getPK(), shres.toJSON());
 					response.put("response", "success");
 				} else {
 					response.put("response", "error");
 					response.put("errorMessage", "invalid resource");
 				}
-			} catch (IOException e) {
-				response.put("response", "error");
-				response.put("errorMessage", "cannot share resource");
-				e.printStackTrace();
 			} catch (IllegalArgumentException e) {
 				response.put("response", "error");
 				response.put("errorMessage", "cannot share resource");

@@ -10,12 +10,12 @@ import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -47,6 +47,7 @@ public class Server {
 	public static HashMap<String, JSONObject> resourceDict = new HashMap<String, JSONObject>();
 	// filename which stores resource information
 
+	
 	static ArrayList<String> serverList = new ArrayList<String>();
 
 	public static void setHostName(String hostName) {
