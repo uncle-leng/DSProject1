@@ -325,13 +325,13 @@ public class Command {
 		String rmresStr = cmd.get("resource").toString();
 		JSONObject rmresJSON = toJSON(rmresStr);
 		Resource rmres = new Resource(rmresJSON);
-		String rmfilename = rmres.getPK().replaceAll(":", "").replaceAll("/", "") + ".json";
+		//String rmfilename = rmres.getPK().replaceAll(":", "").replaceAll("/", "") + ".json";
 		if (rmres.isEmpty()) {
 			response.put("response", "error");
 			response.put("errorMessage", "missing resource");
 			return response.toJSONString();
 		}
-		File file = new File("Resource");
+		/*File file = new File("Resource");
 		if (file.exists() && file.isDirectory()) {
 			String[] filelist = file.list();
 			ArrayList<String> list = new ArrayList();
@@ -353,6 +353,13 @@ public class Command {
 			}
 
 		} else {
+			response.put("response", "error");
+			response.put("errorMessage", "cannot remove resource");
+		}*/
+		if(Server.resourceDict.containsKey(rmres.getPK())){
+			Server.resourceDict.remove(rmres.getPK());
+			response.put("response", "success");
+		}else {
 			response.put("response", "error");
 			response.put("errorMessage", "cannot remove resource");
 		}

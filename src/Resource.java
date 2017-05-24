@@ -244,6 +244,12 @@ public class Resource {
 			return false;
 	}
 
-	
+	public static void main(String[] args){
+		if(Server.resourceDict.containsKey("hello")){
+			System.out.println("hello");
+		}
+		else
+			System.out.println(Server.resourceDict.isEmpty());
+	}
 
 }
