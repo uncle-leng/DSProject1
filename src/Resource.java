@@ -227,19 +227,23 @@ public class Resource {
 		return PK;
 	}
 
-	public boolean isConflict(String filename) {
+	/*public boolean isConflict(String filename) {
 		String[] oldkeys = filename.replaceAll("[.][^.]+$", "").split(",");
 		String[] newkeys = this.getPK().replaceAll(":", "").replaceAll("/", "").split(",");
 		if (!oldkeys[0].equals(newkeys[0]) && oldkeys[1].equals(newkeys[1]) && oldkeys[2].equals(newkeys[2]))
 			return true;
 		else
 			return false;
+	}*/
+	public boolean isconfict(String pk){
+		String[] oldkeys=pk.split(",");
+		String[] newkeys=pk.split(",");
+		if (!oldkeys[0].equals(newkeys[0]) && oldkeys[1].equals(newkeys[1]) && oldkeys[2].equals(newkeys[2]))
+			return true;
+		else
+			return false;
 	}
 
-	public static void main(String[] args) {
-		File file = new File(
-				"/Users/robin/Documents/workspace/DSProject1.zip_expanded/DSProject1/serverfile/sauron.jpg");
-		System.out.println(file.toURI().toString());
-	}
+	
 
 }
