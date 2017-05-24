@@ -139,7 +139,7 @@ public class CommandLineHandle {
 					command.addServer(line.getOptionValue("servers"));
 				} // to be improved
 			}
-			else if (line.hasOption("subscription")) {
+			else if (line.hasOption("subscribe")) {
 				if (line.hasOption("relay")) {
 					command.setRelay(Boolean.parseBoolean(line.getOptionValue("relay")));
 				}

@@ -7,7 +7,10 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.KeyStore.Entry;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Map;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -452,23 +455,33 @@ public class Command {
 		Resource res = new Resource(resourceObj);
 		JSONObject resourceTemplate = res.toJSON();
 		// System.out.println(resourceTemplate);
-		ArrayList<Resource> allResource = getAllResource(filePath);
+		//ArrayList<Resource> allResource = getAllResource(filePath);
+		ArrayList<Resource> allResource = new ArrayList();
+		Iterator iter = Server.resourceDict.entrySet().iterator();
+		while (iter.hasNext()) {
+			Map.Entry<String, JSONObject> entry = (Map.Entry<String, JSONObject>) iter.next();
+			Resource resourceTemp = new Resource(entry.getValue());
+			allResource.add(resourceTemp);
+		}
 		Resource test = new Resource(resourceTemplate);
 
 		try {
-
+			/*
 			if (resourceObj.get("uri").toString().equals("")) {
 
 				JSONObject error = new JSONObject();
 				error.put("response", "error");
 				error.put("errorMesage", "invalid resourceTemplate");
 				finalResult.add(error);
-			} else if (resourceTemplate.toJSONString().equals("")) {
+			} 
+			*/
+			if (resourceTemplate.toJSONString().equals("")) {
 				JSONObject error = new JSONObject();
 				error.put("response", "error");
 				error.put("errorMesage", "missing resourceTemplate");
 				finalResult.add(error);
-			} else {
+			} 
+			else {
 				for (Resource resource : allResource) {
 					// System.out.println(queryMatch(resource,
 					// resourceTemplate));
@@ -480,7 +493,9 @@ public class Command {
 					}
 
 					if (queryMatch(resource, resourceTemplate)) {
+						if (!resource.getOwner().equals("")) {
 						resource.setter("owner", "*");
+						}
 						queryResult.add(resource.toJSON());
 					}
 				}
