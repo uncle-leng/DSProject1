@@ -21,6 +21,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.HashMap;
 
 import javax.net.ServerSocketFactory;
 
@@ -43,9 +44,10 @@ public class Server {
 	private static int counter = 0;
 	private static int exchangeinterval = 10 * 60;
 	public static String resourceFolder = "./Resource/";
+	public static HashMap<String, JSONObject> resourceDict = new HashMap<String, JSONObject>();
 	// filename which stores resource information
 
-	static HashMap<String,JSONObject> resourceDict= new HashMap<String,JSONObject>();
+	
 	static ArrayList<String> serverList = new ArrayList<String>();
 
 	public static void setHostName(String hostName) {

@@ -7,8 +7,14 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.KeyStore.Entry;
 import java.util.ArrayList;
+
+import java.util.Iterator;
+import java.util.Map;
+
 import java.util.HashMap;
+
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -46,6 +52,7 @@ public class Command {
 	private JSONArray serverList;
 	public Resource resourceTemplate;
 	private boolean fetchSuccess;
+	private String id;
 
 	public boolean isFetchSuccess() {
 		return fetchSuccess;
@@ -91,6 +98,9 @@ public class Command {
 
 	public void setRelay(boolean relay) {
 		this.relay = relay;
+	}
+	public void setId(String id) {
+		this.id = id;
 	}
 
 	public void addServer(String servers) {
@@ -140,6 +150,12 @@ public class Command {
 			JSONcmd.put("serverList", serverList);
 			// JSONcmd.put("resourceTemplate",
 			// resourceTemplate.toJSON().toJSONString());
+			break;
+		case "SUBSCRIBE":
+			JSONcmd.put("command", "SUBSCRIBE");
+			JSONcmd.put("relay", this.relay);
+			JSONcmd.put("id", this.id);
+			JSONcmd.put("resourceTemplate", resourceTemplate.toJSON());
 			break;
 		default:
 			break;
@@ -420,6 +436,9 @@ public class Command {
 		if (l1.size()==0 && l2.size()==0) {
 			return true;
 		}
+		if (l2.size() == 0) {
+			return true;
+		}
 		l1.retainAll(l2);
 		if (l1.size() == 0) {
 			return false;
@@ -435,13 +454,15 @@ public class Command {
 		// JSONObject resourceTemplate = (JSONObject)
 		// parser.parse((String)queryJSON.get("resourceTemplate"));
 		Resource rt = new Resource(resourceTemplate);
-		boolean channelMatch = resource.getChannel().equals(rt.getChannel());
-		boolean ownerMatch = resource.getOwner().equals(rt.getOwner());
+		boolean channelMatch = resource.getChannel().equals(rt.getChannel()) || rt.getChannel().equals("");
+		boolean ownerMatch = resource.getOwner().equals(rt.getOwner()) || rt.getOwner().equals("");
 		boolean tagMatch = intersection(resource.getTags(), rt.getTags());
-		boolean uriMatch = resource.getUri().equals(rt.getUri());
+		boolean uriMatch = resource.getUri().equals(rt.getUri()) || rt.getUri().toString().equals("");
 		boolean nameAndDesMatch = (((rt.getName().equals("")) || resource.getName().contains(rt.getName()))
 				|| ((rt.getDescription().equals("")) || resource.getDescription().contains(rt.getDescription()))
 				|| ((rt.getName().equals("")) && rt.getDescription().equals("")));
+
+		
 		if (channelMatch && ownerMatch && tagMatch && uriMatch && nameAndDesMatch) {
 			match = true;
 		}
@@ -459,23 +480,33 @@ public class Command {
 		Resource res = new Resource(resourceObj);
 		JSONObject resourceTemplate = res.toJSON();
 		// System.out.println(resourceTemplate);
-		ArrayList<Resource> allResource = getAllResource(filePath);
+		//ArrayList<Resource> allResource = getAllResource(filePath);
+		ArrayList<Resource> allResource = new ArrayList();
+		Iterator iter = Server.resourceDict.entrySet().iterator();
+		while (iter.hasNext()) {
+			Map.Entry<String, JSONObject> entry = (Map.Entry<String, JSONObject>) iter.next();
+			Resource resourceTemp = new Resource(entry.getValue());
+			allResource.add(resourceTemp);
+		}
 		Resource test = new Resource(resourceTemplate);
 
 		try {
-
+			/*
 			if (resourceObj.get("uri").toString().equals("")) {
 
 				JSONObject error = new JSONObject();
 				error.put("response", "error");
 				error.put("errorMesage", "invalid resourceTemplate");
 				finalResult.add(error);
-			} else if (resourceTemplate.toJSONString().equals("")) {
+			} 
+			*/
+			if (resourceTemplate.toJSONString().equals("")) {
 				JSONObject error = new JSONObject();
 				error.put("response", "error");
 				error.put("errorMesage", "missing resourceTemplate");
 				finalResult.add(error);
-			} else {
+			} 
+			else {
 				for (Resource resource : allResource) {
 					// System.out.println(queryMatch(resource,
 					// resourceTemplate));
@@ -487,7 +518,9 @@ public class Command {
 					}
 
 					if (queryMatch(resource, resourceTemplate)) {
+						if (!resource.getOwner().equals("")) {
 						resource.setter("owner", "*");
+						}
 						queryResult.add(resource.toJSON());
 					}
 				}
@@ -727,5 +760,12 @@ public class Command {
 		return successMsg.toJSONString();
 
 	}
+	
+	
+
+		
+		
+		
+		
 
 }

@@ -25,7 +25,7 @@ public class Client {
 	// IP and port
 	private static String host = "localhost";
 	private static int port = 3000;
-
+	private static boolean secure = false;
 	private static CommandLineHandle commandLine = new CommandLineHandle();
 	private static Options options = commandLine.getOptions();
 
@@ -43,6 +43,10 @@ public class Client {
 
 	public static void setPort(int port) {
 		Client.port = port;
+	}
+	
+	public static void setSecure() {
+		Client.secure = true;
 	}
 
 	public static void main(String[] args) throws URISyntaxException, ParseException {

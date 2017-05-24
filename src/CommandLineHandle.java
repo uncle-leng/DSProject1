@@ -30,6 +30,8 @@ public class CommandLineHandle {
 		options.addOption("tags", true, "resource tags, tag1,tag2,tag3,...");
 		options.addOption("uri", true, "resource URI");
 		options.addOption("relay", true, "set relay");
+		options.addOption("secure", false, "set secure port of client");
+		
 		return options;
 	}
 
@@ -41,6 +43,7 @@ public class CommandLineHandle {
 		options.addOption("secret", true, "secret");
 		options.addOption("debug", false, "print debug information");
 		options.addOption("exchangeinterval", true, "exchange interval in seconds");
+		options.addOption("sport", true, "set secure port of server");
 		return options;
 	}
 
@@ -135,6 +138,35 @@ public class CommandLineHandle {
 				if (line.hasOption("servers")) {
 					command.addServer(line.getOptionValue("servers"));
 				} // to be improved
+			}
+			else if (line.hasOption("subscribe")) {
+				if (line.hasOption("relay")) {
+					command.setRelay(Boolean.parseBoolean(line.getOptionValue("relay")));
+				}
+				if (line.hasOption("id")) {
+					command.setId(line.getOptionValue("id"));
+				}
+				if (line.hasOption("name")) {
+					command.resourceTemplate.setter("name", line.getOptionValue("name"));
+				}
+				if (line.hasOption("tags")) {
+					command.resourceTemplate.setter("tags", line.getOptionValue("tags"));
+				}
+				if (line.hasOption("description")) {
+					command.resourceTemplate.setter("description", line.getOptionValue("description"));
+				}
+				if (line.hasOption("uri")) {
+					command.resourceTemplate.setter("uri", line.getOptionValue("uri"));
+				}
+				if (line.hasOption("channel")) {
+					command.resourceTemplate.setter("channel", line.getOptionValue("channel"));
+				}
+				if (line.hasOption("owner")) {
+					command.resourceTemplate.setter("owner", line.getOptionValue("owner"));
+				}
+				if (line.hasOption("ezserver")) {
+					command.resourceTemplate.setter("ezserver", line.getOptionValue("ezserver"));
+				}
 			}
 			// else if(){ }
 			else
