@@ -172,6 +172,7 @@ public class Server {
 						outputTemp.writeUTF("Server: Hi Client " + counter + " !!!");
 						outputTemp.writeUTF(finalQueryResult);
 						outputTemp.flush();
+
 					}
 
 				} catch (ParseException e) {
@@ -280,6 +281,9 @@ public class Server {
 					}
 				}
 			}
+			if(!inputObj.get("command").toString().equals("SUBSCRIBE")){
+				clientSocket.close();
+				}
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (ParseException e) {

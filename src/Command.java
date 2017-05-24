@@ -324,29 +324,7 @@ public class Command {
 	}
 
 
-	public ArrayList<Resource> getAllResource(String filePath) throws ParseException, URISyntaxException {
-		ArrayList<Resource> allResource = new ArrayList<Resource>();
-		File f = null;
-		f = new File(filePath);
-		File[] files = f.listFiles();
-		String[] filesStr = f.list();
-		// System.out.println(filesStr.length);
-		/*
-		 * if (filesStr.length == 1) { Resource resource = new Resource();
-		 * allResource.add(resource); //System.out.println(allResource); return
-		 * allResource; }
-		 */
-
-		for (int i = 0; i < files.length; i++) {
-			if (files[i].getName().endsWith(".json")) {
-				Resource fileResource = readJSON(files[i]);
-				allResource.add(fileResource);
-			}
-		}
-		// System.out.println(allResource);
-		return allResource;
-
-	}
+	
 
 	public boolean intersection(ArrayList<String> l1, ArrayList<String> l2) {
 		if (l1.size()==0 && l2.size()==0) {
