@@ -45,6 +45,7 @@ public class Command {
 	private JSONArray serverList;
 	public Resource resourceTemplate;
 	private boolean fetchSuccess;
+	private String id;
 
 	public boolean isFetchSuccess() {
 		return fetchSuccess;
@@ -90,6 +91,9 @@ public class Command {
 
 	public void setRelay(boolean relay) {
 		this.relay = relay;
+	}
+	public void setId(String id) {
+		this.id = id;
 	}
 
 	public void addServer(String servers) {
@@ -139,6 +143,12 @@ public class Command {
 			JSONcmd.put("serverList", serverList);
 			// JSONcmd.put("resourceTemplate",
 			// resourceTemplate.toJSON().toJSONString());
+			break;
+		case "SUBSCRIBE":
+			JSONcmd.put("command", "SUBSCRIBE");
+			JSONcmd.put("relay", this.relay);
+			JSONcmd.put("id", this.id);
+			JSONcmd.put("resourceTemplate", resourceTemplate.toJSON());
 			break;
 		default:
 			break;
@@ -703,5 +713,12 @@ public class Command {
 		return successMsg.toJSONString();
 
 	}
+	
+	
+
+		
+		
+		
+		
 
 }
