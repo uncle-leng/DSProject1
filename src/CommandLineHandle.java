@@ -31,7 +31,9 @@ public class CommandLineHandle {
 		options.addOption("uri", true, "resource URI");
 		options.addOption("relay", true, "set relay");
 		options.addOption("secure", false, "set secure port of client");
-		
+		options.addOption("subscribe", false, "subscribe from server ");
+		options.addOption("unsubscribe", false, "subscribe from server ");
+		options.addOption("id", true, "id for subscribe");
 		return options;
 	}
 
@@ -44,6 +46,7 @@ public class CommandLineHandle {
 		options.addOption("debug", false, "print debug information");
 		options.addOption("exchangeinterval", true, "exchange interval in seconds");
 		options.addOption("sport", true, "set secure port of server");
+		
 		return options;
 	}
 
@@ -139,7 +142,10 @@ public class CommandLineHandle {
 					command.addServer(line.getOptionValue("servers"));
 				} // to be improved
 			}
-			else if (line.hasOption("subscribe")) {
+			else if (line.hasOption("subscribe") || line.hasOption("unsubscribe")) {
+				if(line.hasOption("subscribe"))command.setCommand("SUBSCRIBE");
+				else command.setCommand("UNSUBSCRIBE");
+				
 				if (line.hasOption("relay")) {
 					command.setRelay(Boolean.parseBoolean(line.getOptionValue("relay")));
 				}

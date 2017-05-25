@@ -157,6 +157,10 @@ public class Command {
 			JSONcmd.put("id", this.id);
 			JSONcmd.put("resourceTemplate", resourceTemplate.toJSON());
 			break;
+		case "UNSUBSCRIBE":
+			JSONcmd.put("command", "UNSUBSCRIBE");
+			JSONcmd.put("id", this.id);
+			break;
 		default:
 			break;
 		}
@@ -201,6 +205,11 @@ public class Command {
 		case "EXCHANGE":
 			// System.out.println("exchangeexchange");
 			result = exchange(jsonCommand);
+			break;
+		case "SUBSCRIBE" :
+			JSONObject resultJson = new JSONObject();
+			resultJson.put("result",subscribe(jsonCommand));
+			result = resultJson.toString();
 			break;
 		default:
 			response.put("response", "error");
@@ -252,8 +261,15 @@ public class Command {
 				}
 			}
 		}
+		
 		Server.resourceDict.put(newres.getPK(), newres.toJSON());
 		response.put("response", "success");
+		Iterator iter = Server.subscribeFlag.entrySet().iterator();
+		while (iter.hasNext()) {
+			Map.Entry<String, Boolean> entry = (Map.Entry<String, Boolean>) iter.next();
+			entry.setValue(true);
+		}
+		Server.newResource = newres;
 		return response.toJSONString();
 	}
 
@@ -326,7 +342,7 @@ public class Command {
 
 	
 
-	public boolean intersection(ArrayList<String> l1, ArrayList<String> l2) {
+	public static boolean intersection(ArrayList<String> l1, ArrayList<String> l2) {
 		if (l1.size()==0 && l2.size()==0) {
 			return true;
 		}
@@ -341,7 +357,7 @@ public class Command {
 		}
 	}
 
-	public boolean queryMatch(Resource resource, JSONObject resourceTemplate)
+	public static boolean queryMatch(Resource resource, JSONObject resourceTemplate)
 			throws ParseException, URISyntaxException {
 		boolean match = false;
 		JSONParser parser = new JSONParser();
@@ -614,7 +630,85 @@ public class Command {
 	}
 	
 	
+	public ArrayList<JSONObject> subscribe(JSONObject cmd) throws ParseException, URISyntaxException {
+		JSONParser parser = new JSONParser();
+		ArrayList<JSONObject> subscribeResult = new ArrayList<JSONObject>();
+		ArrayList<JSONObject> finalResult = new ArrayList<JSONObject>();
+		String resultStr = "";
+		//String filePath = "./Resource";
+		// System.out.println(cmd.toJSONString());
+		JSONObject resourceObj = (JSONObject) parser.parse(cmd.get("resourceTemplate").toString());
+		this.resourceTemplate = new Resource(resourceObj);
+		JSONObject resourceTemplate = this.resourceTemplate.toJSON();
+		if(!(cmd.get("id") == null) ){
+			this.id = cmd.get("id").toString();
+		}
+		else {
+			JSONObject error = new JSONObject();
+			error.put("response", "error");
+			error.put("errorMesage", "missing id");
+			finalResult.add(error);
+		}
+		// System.out.println(resourceTemplate);
+		//ArrayList<Resource> allResource = getAllResource(filePath);
+		ArrayList<Resource> allResource = new ArrayList();
+		Iterator iter = Server.resourceDict.entrySet().iterator();
+		while (iter.hasNext()) {
+			Map.Entry<String, JSONObject> entry = (Map.Entry<String, JSONObject>) iter.next();
+			Resource resourceTemp = new Resource(entry.getValue());
+			allResource.add(resourceTemp);
+		}
+		Resource test = new Resource(resourceTemplate);
 
+		try {
+			
+			if (resourceTemplate.toJSONString().equals("")) {
+				JSONObject error = new JSONObject();
+				error.put("response", "error");
+				error.put("errorMesage", "missing resourceTemplate");
+				finalResult.add(error);
+			} 
+			else {
+				for (Resource resource : allResource) {
+					for (int i = 0; i < resource.getTags().size(); i++) {
+						String temp = resource.getTags().get(i).replace("[", "").replace("]", "");
+						resource.getTags().set(i, temp);
+					}
+
+					if (queryMatch(resource, resourceTemplate)) {
+						if (!resource.getOwner().equals("")) {
+						resource.setter("owner", "*");
+						}
+						subscribeResult.add(resource.toJSON());
+					}
+				}
+				// System.out.println(resourceTemplate.get("tags"));
+				JSONObject success = new JSONObject();
+				success.put("response", "success");
+				success.put("id", this.id);
+				finalResult.add(success);
+				for (JSONObject q : subscribeResult) {
+					if(q.containsKey("resourceSize")){
+						q.remove("resourceSize");
+					}
+					finalResult.add(q);
+				}
+				JSONObject resultSize = new JSONObject();
+				resultSize.put("resultSize", Integer.toString(subscribeResult.size()));
+				finalResult.add(resultSize);
+			}
+		} catch (ParseException e) {
+			JSONObject error = new JSONObject();
+			error.put("response", "error");
+			error.put("errorMesage", "invalid resourceTemplate");
+			finalResult.add(error);
+			e.printStackTrace();
+		}
+		return finalResult;
+		
+		//return resultStr;
+
+	}
 		
 		
 		

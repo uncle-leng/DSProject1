@@ -45,8 +45,11 @@ public class Server {
 	private static int exchangeinterval = 10 * 60;
 	public static String resourceFolder = "./Resource/";
 	public static HashMap<String, JSONObject> resourceDict = new HashMap<String, JSONObject>();
+	
 	// filename which stores resource information
 
+	public static HashMap<String, Boolean> subscribeFlag = new HashMap<String, Boolean>();
+	public static Resource newResource;
 	
 	static ArrayList<String> serverList = new ArrayList<String>();
 	
@@ -63,6 +66,7 @@ public class Server {
 	// Identifies the user number connected
 	private static boolean queryComplete = false;
 	private static String queryRelayResult = "";
+	
 
 	public static void main(String[] args) throws URISyntaxException {
 
@@ -191,6 +195,116 @@ public class Server {
 				// queryRelay.start();
 
 			}
+
+			else if (inputObj.containsKey("command") && inputObj.get("command").toString().equals("SUBSCRIBE") )
+			{	
+				ArrayList<JSONObject> resultJsonList = (ArrayList<JSONObject>) ((JSONObject)parser.parse(command.parseCommand(inputUTF))).get("result");
+				String resultStr = "";
+				int subscribeResultSize = 0;
+				boolean success = false;
+				String id = "";
+				for (JSONObject result : resultJsonList) {
+					if(result.containsKey("resultSize")){
+						subscribeResultSize = Integer.parseInt(result.get("resultSize").toString());
+					}
+					else{
+					if(result.containsKey("response")){
+						if(result.get("response").toString().equals("success"))
+							success = true;
+						id = result.get("id").toString();
+					}
+					resultStr += result.toJSONString() + "\n";
+					}
+				}
+				output.writeUTF(resultStr);
+				
+				
+				if(success){					
+					subscribeFlag.put(id, false);
+				if (inputObj.containsKey("relay") && inputObj.get("relay").toString().equals("false")) {
+					while(true){
+						if(input.available() > 0){
+							String inputUTFSubscribe = input.readUTF();
+							System.out.println(inputUTFSubscribe);
+							//JSONObject responseObjSubscribe = new JSONObject();
+							JSONObject inputObjSubscribe = (JSONObject) parser.parse(inputUTFSubscribe);
+							if(inputObjSubscribe.get("command").toString().equals("UNSUBSCRIBE")){
+								JSONObject responJson = new JSONObject();
+								responJson.put("resultSize", subscribeResultSize);
+								output.writeUTF(responJson.toString());
+								clientSocket.close();
+								return;
+							}
+						}
+					
+						if(subscribeFlag.get(id)){
+						
+							if(Command.queryMatch(newResource,(JSONObject)inputObj.get("resourceTemplate"))){
+								String outputStr = newResource.toJSON().toString();	
+								output.writeUTF(outputStr);
+								subscribeResultSize ++;
+							}
+							subscribeFlag.put(id, false);
+						}
+					}
+				}
+				
+				else if (inputObj.containsKey("relay") && inputObj.get("relay").toString().equals("true")) {
+					JSONObject inputObjTemp = inputObj;
+					inputObjTemp.put("relay", false);
+					
+					
+					Thread t = new Thread(() -> {
+						try {
+
+							subscribeRelay(input, output, client, serverList, inputObj.toJSONString());
+						} catch (ParseException | IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					});
+					t.start();
+					while (true) {
+			
+						
+						if (input.available() > 0) {
+							String inputUTFSubscribe = input.readUTF();
+							System.out.println(inputUTFSubscribe);
+							JSONObject inputObjSubscribe = (JSONObject) parser.parse(inputUTFSubscribe);
+							if (inputObjSubscribe.containsKey("command") && inputObjSubscribe.get("command").toString().equals("unsubscribe")) {
+								JSONObject responJson = new JSONObject();
+								responJson.put("resultSize", subscribeResultSize);
+								output.writeUTF(responJson.toString());
+								clientSocket.close();
+								return;
+							}
+							else {
+								output.writeUTF(inputUTFSubscribe);
+								subscribeResultSize ++;
+							}
+						}
+						if(subscribeFlag.get(id)){
+							
+							if(Command.queryMatch(newResource,(JSONObject)inputObj.get("resourceTemplate"))){
+								String outputStr = newResource.toJSON().toString();	
+								output.writeUTF(outputStr);
+								subscribeResultSize ++;
+							}
+							subscribeFlag.put(id, false);
+						}
+					}
+					
+				}
+				
+				
+				
+				}
+				
+			}
+			
+
+			
+
 			else {
 
 				String response = command.parseCommand(inputUTF);
@@ -221,7 +335,6 @@ public class Server {
 				resourceTemplate.put("channel", "");
 				tempObj.put("resourceTemplate", resourceTemplate);
 
-				// Thread queryRelay = new Thread( () -> {
 				try (SSLSocket clientSocketTemp = client) {
 					queryRelayResult = getAllQuery(secureServerList, tempObj.toJSONString());
 					// System.out.println(queryRelayResult);
@@ -282,7 +395,7 @@ public class Server {
 						responseObj = (JSONObject) parser.parse(resStatus);
 					}
 					// System.out.println(inputObj.get("command"));
-					if (inputObj.get("command").toString().equals("exchange")
+					if (inputObj.get("command").toString().equals("EXCHANGE")
 							&& responseObj.get("response").toString().equals("success")) {
 						String serverListStr = inputObj.get("serverList").toString();
 						JSONArray serverArray = (JSONArray) parser.parse(serverListStr);
@@ -404,6 +517,8 @@ public class Server {
 		} catch (ParseException e) {
 
 			e.printStackTrace();
+		}catch(NullPointerException e){
+			e.printStackTrace();
 		}
 	}
 
@@ -436,6 +551,59 @@ public class Server {
 		}
 
 	}
+	
+	public static void subscribeRelay(DataInputStream input, DataOutputStream output, Socket socket, ArrayList<String> serverList, String command) throws ParseException, IOException {
+
+		for (String server : serverList) {
+			String ip = server.split(":")[0];
+			int port = Integer.parseInt(server.split(":")[1]);
+			Thread t = new Thread(() -> {
+				try {
+					subscribeOne(input, output, ip, port, command);
+				} catch (ParseException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			});
+			t.start();
+
+	}
+	}
+	
+	public static void subscribeOne(DataInputStream input, DataOutputStream output, String ip, int port, String command) throws ParseException {
+		try (Socket socket = new Socket(ip, port)) {
+			// Output and Input Stream
+			DataInputStream subinput = new DataInputStream(socket.getInputStream());
+			DataOutputStream suboutput = new DataOutputStream(socket.getOutputStream());
+			suboutput.writeUTF(command);
+			suboutput.flush();
+			while (true) {
+				if (subinput.available() > 0) {
+
+					String message = subinput.readUTF();
+					JSONParser parser = new JSONParser();
+					JSONObject messageObj = (JSONObject) parser.parse(message);
+					if (!messageObj.containsKey("response")) {
+						output.writeUTF(message);
+					}
+					// System.out.println(message);
+	
+				}
+			}
+		} catch (ConnectException e) {
+			System.out.println("Invild Host " + ip);
+
+		} catch (UnknownHostException e) {
+			System.out.println("invalid host " + ip);
+
+
+		} catch (IOException e) {
+			e.printStackTrace();
+			
+
+		}
+
+	}
 
 	public static String getAllQuery(ArrayList<String> serverList, String command) throws ParseException {
 		// boolean queryComplete = false;
@@ -462,7 +630,7 @@ public class Server {
 
 	public static void timer() {
 		Timer myTimer = new Timer();
-		myTimer.schedule(new Timertest(), 1000 * exchangeinterval, 1000 * exchangeinterval);
+		myTimer.schedule(new Timertest(), 20 * exchangeinterval, 20 * exchangeinterval);
 	}
 
 	public static void setExchangeinterval(int exchangeinterval) {
@@ -498,7 +666,7 @@ public class Server {
 				obj.put("port", serverList.get(i).split(":")[1]);
 				serversArray.add(obj);
 			}
-			command.put("command", "exchange");
+			command.put("command", "EXCHANGE");
 			command.put("serverList", serversArray.toJSONString());
 			String outCommand = command.toString();
 			try (Socket socket = new Socket(ip, port)) {
