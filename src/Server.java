@@ -37,6 +37,7 @@ public class Server {
 	public static String secret = RandomStringUtils.randomAlphanumeric(32);
 	// Declare the port number
 	private static int port = 3000;
+	private static int sport=3781;
 	private static String hostName = "Default Hostname";
 	private static int connectionIntervallimit = 1;
 
@@ -80,6 +81,7 @@ public class Server {
 			logger.info("bound to port " + Server.port);
 			logger.info("started");
 		}
+		
 
 		ServerSocketFactory factory = ServerSocketFactory.getDefault();
 		try (ServerSocket server = factory.createServerSocket(port)) {
@@ -421,6 +423,11 @@ public class Server {
 	public static void setPort(int port) {
 		Server.port = port;
 	}
+	
+	public static void setSport(int sport){
+		Server.sport=sport;
+	}
+
 
 	static class Timertest extends TimerTask {
 
