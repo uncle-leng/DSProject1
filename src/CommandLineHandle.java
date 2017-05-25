@@ -210,6 +210,8 @@ public class CommandLineHandle {
 				Server.setConnectionIntervallimit(Integer.parseInt(line.getOptionValue("connectionintervallimit")));
 			if (line.hasOption("port"))
 				Server.setPort(Integer.parseInt(line.getOptionValue("port")));
+			if (line.hasOption("sport"))
+				Server.setSport(Integer.parseInt(line.getOptionValue("sport")));
 			if (line.hasOption("secret"))
 				Server.setSecret(line.getOptionValue("secret"));
 			if (line.hasOption("exchangeinterval"))
