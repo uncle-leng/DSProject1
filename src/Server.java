@@ -649,7 +649,7 @@ public class Server {
 
 		public void run() {
 			System.out.println("Start automatical exchange...");
-
+			/////
 			if (serverList.isEmpty()) {
 				System.out.println("empty serverlist!");
 				return;
