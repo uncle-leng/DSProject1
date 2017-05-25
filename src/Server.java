@@ -49,6 +49,8 @@ public class Server {
 
 	
 	static ArrayList<String> serverList = new ArrayList<String>();
+	
+	static ArrayList<String> secureServerList = new ArrayList<String>();
 
 	public static void setHostName(String hostName) {
 		Server.hostName = hostName;
@@ -189,7 +191,6 @@ public class Server {
 				// queryRelay.start();
 
 			}
-
 			else {
 
 				String response = command.parseCommand(inputUTF);
@@ -199,6 +200,81 @@ public class Server {
 
 				// System.out.println(responseObj.get("response"));
 
+				
+				
+				
+				
+				
+				
+				//////////////////////////////////////////////////////////////////////////////////////////
+				
+				
+				// to be added into secure server socket
+				/*
+				 * if (inputObj.containsKey("relay") && inputObj.get("command").toString().equals("QUERY")
+					&& inputObj.get("relay").toString().equals("true")) {
+
+				JSONObject tempObj = inputObj;
+				tempObj.put("relay", false);
+				JSONObject resourceTemplate = (JSONObject) parser.parse(tempObj.get("resourceTemplate").toString());
+				resourceTemplate.put("owner", "");
+				resourceTemplate.put("channel", "");
+				tempObj.put("resourceTemplate", resourceTemplate);
+
+				// Thread queryRelay = new Thread( () -> {
+				try (SSLSocket clientSocketTemp = client) {
+					queryRelayResult = getAllQuery(secureServerList, tempObj.toJSONString());
+					// System.out.println(queryRelayResult);
+					DataInputStream inputTemp = new DataInputStream(clientSocketTemp.getInputStream());
+					// Output Stream
+					DataOutputStream outputTemp = new DataOutputStream(clientSocketTemp.getOutputStream());
+
+					// System.out.println(queryRelayResult);
+
+					String[] localQuery = command.parseCommand(inputUTF).split("\n");
+					JSONObject localQueryObj = (JSONObject) parser.parse(localQuery[0]);
+					if (localQueryObj.get("response").toString().equals("success")) {
+						String finalQueryResult = "";
+						for (int i = 0; i < localQuery.length - 1; i++) {
+							finalQueryResult += localQuery[i] + "\n";
+						}
+						finalQueryResult += queryRelayResult;
+						int size = finalQueryResult.split("\n").length - 1;
+						JSONObject resultSize = new JSONObject();
+						resultSize.put("resultSize", size);
+						finalQueryResult += resultSize.toJSONString() + "\n";
+						//System.out.println(finalQueryResult);
+						outputTemp.writeUTF("Server: Hi Client " + counter + " !!!");
+						outputTemp.writeUTF(finalQueryResult);
+						outputTemp.flush();
+
+					}
+
+				} catch (ParseException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (URISyntaxException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+			}
+			else {
+
+				String response = command.parseCommand(inputUTF);
+				System.out.println(response);
+	
+
+				 */
+				
+				
+			////////////////////////////////////////////////////////////////////////////////////////	
+				
+				
+				
 				if (!inputObj.isEmpty()) {
 					if (!inputObj.get("command").toString().equals("query")) {
 						//System.out.println(response);
@@ -228,12 +304,51 @@ public class Server {
 							}
 
 						}
-						// Thread t = new Thread(() -> Client());
-						// t.start();
-						// System.out.println(serverList);
-
+		
 					}
+					/////////////////////////////////////////////////////////////////////////////
+					// to be added into secure server socket
+					/*
+						if (inputObj.get("command").toString().equals("exchange")
+							&& responseObj.get("response").toString().equals("success")) {
+						String serverListStr = inputObj.get("serverList").toString();
+						JSONArray serverArray = (JSONArray) parser.parse(serverListStr);
+						for (int i = 0; i < serverArray.size(); i++) {
+							boolean dup = false;
+							String ip = serverArray.get(i).toString().split(",")[0].split(":")[1].replaceAll("\"", "");
+							String port = serverArray.get(i).toString().split(",")[1].split(":")[1].replace("}", "")
+									.replaceAll("\"", "");
+							String serverRecord = ip + ":" + port;
+							for (int j = 0; j < serverList.size(); j++) {
+								if (serverList.get(j).equals(serverRecord)) {
+									dup = true;
+								}
+							}
+							if (dup == false && !serverRecord.split(":")[0]
+									.equals(InetAddress.getLocalHost().toString().split("/")[1])) {
+								secureServerList.add(serverRecord);
+
+							}
+
+						}
+						
+					}
+					*/
+					/////////////////////////////////////////////////////////////////////////
+					
 				}
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
 
 				output.writeUTF(response);
 				if (command.getCommand().equals("FETCH")) {
@@ -342,6 +457,8 @@ public class Server {
 		return queryResult;
 
 	}
+	
+
 
 	public static void timer() {
 		Timer myTimer = new Timer();
