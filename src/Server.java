@@ -268,7 +268,7 @@ public class Server {
 						responseObj = (JSONObject) parser.parse(resStatus);
 					}
 					// System.out.println(inputObj.get("command"));
-					if (inputObj.get("command").toString().equals("exchange")
+					if (inputObj.get("command").toString().equals("EXCHANGE")
 							&& responseObj.get("response").toString().equals("success")) {
 						String serverListStr = inputObj.get("serverList").toString();
 						JSONArray serverArray = (JSONArray) parser.parse(serverListStr);
@@ -409,7 +409,7 @@ public class Server {
 
 	public static void timer() {
 		Timer myTimer = new Timer();
-		myTimer.schedule(new Timertest(), 1000 * exchangeinterval, 1000 * exchangeinterval);
+		myTimer.schedule(new Timertest(), 20 * exchangeinterval, 20 * exchangeinterval);
 	}
 
 	public static void setExchangeinterval(int exchangeinterval) {
@@ -450,7 +450,7 @@ public class Server {
 				obj.put("port", serverList.get(i).split(":")[1]);
 				serversArray.add(obj);
 			}
-			command.put("command", "exchange");
+			command.put("command", "EXCHANGE");
 			command.put("serverList", serversArray.toJSONString());
 			String outCommand = command.toString();
 			try (Socket socket = new Socket(ip, port)) {
