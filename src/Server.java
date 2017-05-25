@@ -45,8 +45,11 @@ public class Server {
 	private static int exchangeinterval = 10 * 60;
 	public static String resourceFolder = "./Resource/";
 	public static HashMap<String, JSONObject> resourceDict = new HashMap<String, JSONObject>();
+	
 	// filename which stores resource information
 
+	public static HashMap<String, Boolean> subscribeFlag = new HashMap<String, Boolean>();
+	public static Resource newResource;
 	
 	static ArrayList<String> serverList = new ArrayList<String>();
 
@@ -61,6 +64,7 @@ public class Server {
 	// Identifies the user number connected
 	private static boolean queryComplete = false;
 	private static String queryRelayResult = "";
+	
 
 	public static void main(String[] args) throws URISyntaxException {
 
@@ -189,7 +193,63 @@ public class Server {
 				// queryRelay.start();
 
 			}
-
+			else if (inputObj.get("command").toString().equals("SUBSCRIBE")){
+				 
+				
+				ArrayList<JSONObject> resultJsonList = (ArrayList<JSONObject>) ((JSONObject)parser.parse(command.parseCommand(inputUTF))).get("result");
+				String resultStr = "";
+				int subscribeResultSize = 0;
+				boolean success = false;
+				String id = "";
+				for (JSONObject result : resultJsonList) {
+					if(result.containsKey("resultSize")){
+						subscribeResultSize = Integer.parseInt(result.get("resultSize").toString());
+					}
+					else{
+					if(result.containsKey("response")){
+						if(result.get("response").toString().equals("success"))
+							success = true;
+						id = result.get("id").toString();
+					}
+					resultStr += result.toJSONString() + "\n";
+					}
+				}
+				output.writeUTF(resultStr);
+				
+				
+				if(success){					
+					subscribeFlag.put(id, false);
+					
+				while(true){
+					if(input.available() > 0){
+						String inputUTFSubscribe = input.readUTF();
+						System.out.println(inputUTFSubscribe);
+						//JSONObject responseObjSubscribe = new JSONObject();
+						JSONObject inputObjSubscribe = (JSONObject) parser.parse(inputUTFSubscribe);
+						if(inputObjSubscribe.get("command").toString().equals("UNSUBSCRIBE")){
+							JSONObject responJson = new JSONObject();
+							responJson.put("resultSize", subscribeResultSize);
+							output.writeUTF(responJson.toString());
+							clientSocket.close();
+							return;
+						}
+					}
+					
+					if(subscribeFlag.get(id)){
+						
+						if(Command.queryMatch(newResource,(JSONObject)inputObj.get("resourceTemplate"))){
+							String outputStr = newResource.toJSON().toString();
+							output.writeUTF(outputStr);
+							subscribeResultSize ++;
+						}
+						subscribeFlag.put(id, false);
+					}
+				}
+				
+				
+				}
+				
+			}
 			else {
 
 				String response = command.parseCommand(inputUTF);
@@ -288,6 +348,8 @@ public class Server {
 			e.printStackTrace();
 		} catch (ParseException e) {
 
+			e.printStackTrace();
+		}catch(NullPointerException e){
 			e.printStackTrace();
 		}
 	}

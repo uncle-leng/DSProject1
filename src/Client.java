@@ -9,6 +9,7 @@ import java.net.Socket;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.Arrays;
+import java.util.Scanner;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -71,7 +72,7 @@ public class Client {
 			}
 			
 			if (!outCommand.isEmpty()) {
-				if (!outCommand.get("command").toString().equals("FETCH")) {
+				if (!outCommand.get("command").toString().equals("FETCH") && !outCommand.get("command").toString().equals("SUBSCRIBE")) {
 					while (true) {
 						if (input.available() > 0) {
 
@@ -82,12 +83,15 @@ public class Client {
 								if (commandLine.debug(args, options)) {
 									logger.fine("RECEIVED:" + message);
 								}
+								socket.close();
+								return;
+								
 							} catch (EOFException e) {
 
 							}
 						}
 					}
-				} else {
+				} else if(outCommand.get("command").toString().equals("FETCH")){
 					try {
 						String message = input.readUTF();
 						System.out.println(message);
@@ -153,6 +157,37 @@ public class Client {
 						logger.fine("RECEIVED:" + resultSize);
 					}
 				}
+				else {
+					
+					Thread interaction = new Thread(() -> {
+						try {
+							inputWaiting(output,input,socket);
+						} catch (URISyntaxException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						} catch (IOException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+					});
+					interaction.start();
+					
+					while (true) {
+						if (input.available() > 0) {
+
+							try {
+								String message = input.readUTF();
+								System.out.println(message);
+
+								if (commandLine.debug(args, options)) {
+									logger.fine("RECEIVED:" + message);
+								}
+							} catch (EOFException e) {
+
+							}
+						}
+					}
+				}
 
 			}
 
@@ -161,11 +196,38 @@ public class Client {
 		catch (UnknownHostException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
-			e.printStackTrace();
+			return;
 		}
 
 	}
 
+		
+	public static void inputWaiting(DataOutputStream output,DataInputStream input,Socket socket) throws URISyntaxException, IOException{
+		Scanner scanner = new Scanner(System.in);
+		String[] inputString = scanner.nextLine().split(" ");
+		
+		JSONObject outCommand = commandLine.parse(inputString, options);
+		String out = outCommand.toString();
+		System.out.println(out);
+		output.writeUTF(out);
+		
+		while (true) {
+			if (input.available() > 0) {
+
+				try {
+					String message = input.readUTF();
+					System.out.println(message);
+
+					
+					socket.close();
+					return;
+					
+				} catch (EOFException e) {
+					
+				}
+			}
+		}
+	}
 	public static int setChunkSize(long fileSizeRemaining) {
 		int chunkSize = 1024 * 1024;
 		if (fileSizeRemaining < chunkSize) {
