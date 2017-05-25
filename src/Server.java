@@ -557,6 +557,7 @@ public class Server {
 	public static void subscribeRelay(DataInputStream input, DataOutputStream output, Socket socket, ArrayList<String> serverList, String command) throws ParseException, IOException {
 
 		for (String server : serverList) {
+			///
 			String ip = server.split(":")[0];
 			int port = Integer.parseInt(server.split(":")[1]);
 			Thread t = new Thread(() -> {
