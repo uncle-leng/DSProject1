@@ -590,11 +590,19 @@ public class Server {
 			suboutput.flush();
 			while (true) {
 				if (subinput.available() > 0) {
-
+					JSONObject messageObj = new JSONObject();
 					String message = subinput.readUTF();
-					
-					JSONObject messageObj = (JSONObject) parser.parse(message);
-					
+					if (message.split("\n").length == 1){
+						messageObj = (JSONObject) parser.parse(message);
+					}
+					else {
+						JSONArray arrayTemp = new JSONArray();
+						for (int i = 1; i < message.split("\n").length; i++) {
+							arrayTemp.add(message.split("\n")[i]);
+						}
+						output.writeUTF(arrayTemp.toJSONString());
+						messageObj = (JSONObject) parser.parse(message.split("\n")[0]);
+					}
 					if (!messageObj.containsKey("response")) {
 						output.writeUTF(message);
 					}
@@ -605,6 +613,7 @@ public class Server {
 					JSONObject InputObj = (JSONObject) parser.parse(Input);
 					if (InputObj.containsKey("command") && InputObj.get("command").toString().equals("UNSUBSCRIBE")) {
 						socket.close();
+						//System.out.println("1111");
 					}
 				}
 			}
