@@ -257,7 +257,7 @@ public class Server {
 					JSONObject inputObjTemp = inputObj;
 					inputObjTemp.put("relay", false);
 					ArrayList<Integer> totalSize = new ArrayList();
-					totalSize.set(0, 0);
+					totalSize.add(0);
 					
 					Thread t = new Thread(() -> {
 						try {
@@ -286,7 +286,7 @@ public class Server {
 							}
 							else {
 								output.writeUTF(inputUTFSubscribe);
-				
+								System.out.println(inputUTFSubscribe);
 								totalSize.set(0, totalSize.get(0) + 1);
 							}
 						}
@@ -295,7 +295,7 @@ public class Server {
 							if(Command.queryMatch(newResource,(JSONObject)inputObj.get("resourceTemplate"))){
 								String outputStr = newResource.toString();	
 								output.writeUTF(outputStr);
-							
+								System.out.println(outputStr);
 								totalSize.set(0, totalSize.get(0) + 1);
 							}
 							subscribeFlag.put(id, false);
@@ -609,11 +609,14 @@ public class Server {
 					}
 					else {
 						JSONArray arrayTemp = new JSONArray();
+						String temp = "";
 						for (int i = 1; i < message.split("\n").length; i++) {
 							arrayTemp.add(message.split("\n")[i]);
 							totalSize.set(0, totalSize.get(0) + 1);
+							temp += message.split("\n")[i];
 						}
-						output.writeUTF(arrayTemp.toJSONString());
+						
+						output.writeUTF(temp);
 						//totalSize.set(0, totalSize.get(0) + arrayTemp.size() - 1);
 						///
 						//messageObj = (JSONObject) parser.parse(message.split("\n")[0]);
