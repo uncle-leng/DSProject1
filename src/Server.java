@@ -278,11 +278,13 @@ public class Server {
 								JSONObject responJson = new JSONObject();
 								responJson.put("resultSize", subscribeResultSize);
 								output.writeUTF(responJson.toString());
+								output.writeUTF("aaa");
 								clientSocket.close();
 								return;
 							}
 							else {
 								output.writeUTF(inputUTFSubscribe);
+								output.writeUTF("bbb");
 								subscribeResultSize ++;
 							}
 						}
@@ -291,6 +293,7 @@ public class Server {
 							if(Command.queryMatch(newResource,(JSONObject)inputObj.get("resourceTemplate"))){
 								String outputStr = newResource.toJSON().toString();	
 								output.writeUTF(outputStr);
+								output.writeUTF("ccc");
 								subscribeResultSize ++;
 							}
 							subscribeFlag.put(id, false);
@@ -587,6 +590,7 @@ public class Server {
 			DataOutputStream suboutput = new DataOutputStream(socket.getOutputStream());
 			JSONParser parser = new JSONParser();
 			suboutput.writeUTF(command);
+			output.writeUTF("ddd");
 			suboutput.flush();
 			while (true) {
 				if (subinput.available() > 0) {
@@ -594,6 +598,10 @@ public class Server {
 					String message = subinput.readUTF();
 					if (message.split("\n").length == 1){
 						messageObj = (JSONObject) parser.parse(message);
+						if (!messageObj.containsKey("response")) {
+							output.writeUTF(message);
+							output.writeUTF("eee");
+						}
 					}
 					else {
 						JSONArray arrayTemp = new JSONArray();
@@ -601,17 +609,17 @@ public class Server {
 							arrayTemp.add(message.split("\n")[i]);
 						}
 						output.writeUTF(arrayTemp.toJSONString());
-						messageObj = (JSONObject) parser.parse(message.split("\n")[0]);
+						output.writeUTF("fff");
+						//messageObj = (JSONObject) parser.parse(message.split("\n")[0]);
 					}
-					if (!messageObj.containsKey("response")) {
-						output.writeUTF(message);
-					}
+	
 	
 				}
 				if (input.available() > 0) {
 					String Input = input.readUTF();
 					JSONObject InputObj = (JSONObject) parser.parse(Input);
 					if (InputObj.containsKey("command") && InputObj.get("command").toString().equals("UNSUBSCRIBE")) {
+						
 						socket.close();
 						//System.out.println("1111");
 					}
