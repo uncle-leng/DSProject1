@@ -286,7 +286,7 @@ public class Server {
 							else {
 								output.writeUTF(inputUTFSubscribe);
 				
-								totalSize ++;
+								totalSize += 1;
 							}
 						}
 						if(subscribeFlag.get(id)){
@@ -295,7 +295,7 @@ public class Server {
 								String outputStr = newResource.toJSON().toString();	
 								output.writeUTF(outputStr);
 							
-								totalSize ++;
+								totalSize += 1;
 							}
 							subscribeFlag.put(id, false);
 						}
@@ -585,7 +585,7 @@ public class Server {
 	}
 	
 	public static void subscribeOne(DataInputStream input, DataOutputStream output, String ip, int port, String command) throws ParseException {
-		int totalSize = 0;
+
 		try (Socket socket = new Socket(ip, port)) {
 			// Output and Input Stream
 			DataInputStream subinput = new DataInputStream(socket.getInputStream());
