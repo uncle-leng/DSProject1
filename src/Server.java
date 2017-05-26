@@ -610,6 +610,7 @@ public class Server {
 						}
 						output.writeUTF(arrayTemp.toJSONString());
 						output.writeUTF("fff");
+						///
 						//messageObj = (JSONObject) parser.parse(message.split("\n")[0]);
 					}
 	
