@@ -68,6 +68,7 @@ public class Server {
 	private static boolean queryComplete = false;
 	private static String queryRelayResult = "";
 	
+	public static int totalSize = 0;
 
 	public static void main(String[] args) throws URISyntaxException {
 
@@ -255,7 +256,7 @@ public class Server {
 				else if (inputObj.containsKey("relay") && inputObj.get("relay").toString().equals("true")) {
 					JSONObject inputObjTemp = inputObj;
 					inputObjTemp.put("relay", false);
-					int totalSize = 0;
+					
 					
 					Thread t = new Thread(() -> {
 						try {
@@ -622,7 +623,7 @@ public class Server {
 					String Input = input.readUTF();
 					JSONObject InputObj = (JSONObject) parser.parse(Input);
 					if (InputObj.containsKey("command") && InputObj.get("command").toString().equals("UNSUBSCRIBE")) {
-						output.writeUTF(Integer.toString(totalSize));
+						totalSize ++;
 						socket.close();
 						//System.out.println("1111");
 					}
