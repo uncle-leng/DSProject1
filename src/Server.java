@@ -292,7 +292,7 @@ public class Server {
 						if(subscribeFlag.get(id)){
 							
 							if(Command.queryMatch(newResource,(JSONObject)inputObj.get("resourceTemplate"))){
-								String outputStr = newResource.toJSON().toString();	
+								String outputStr = newResource.toJSON().toJSONString();	
 								output.writeUTF(outputStr);
 							
 								totalSize += 1;
