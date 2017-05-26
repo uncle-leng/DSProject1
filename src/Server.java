@@ -255,7 +255,7 @@ public class Server {
 				else if (inputObj.containsKey("relay") && inputObj.get("relay").toString().equals("true")) {
 					JSONObject inputObjTemp = inputObj;
 					inputObjTemp.put("relay", false);
-					
+					int totalSize = 0;
 					
 					Thread t = new Thread(() -> {
 						try {
@@ -276,16 +276,16 @@ public class Server {
 							JSONObject inputObjSubscribe = (JSONObject) parser.parse(inputUTFSubscribe);
 							if (inputObjSubscribe.containsKey("command") && inputObjSubscribe.get("command").toString().equals("UNSUBSCRIBE")) {
 								JSONObject responJson = new JSONObject();
-								responJson.put("resultSize", subscribeResultSize);
+								responJson.put("resultSize", totalSize);
 								output.writeUTF(responJson.toString());
-								output.writeUTF("aaa");
+								output.flush();
 								clientSocket.close();
 								return;
 							}
 							else {
 								output.writeUTF(inputUTFSubscribe);
-								output.writeUTF("bbb");
-								subscribeResultSize ++;
+				
+								totalSize ++;
 							}
 						}
 						if(subscribeFlag.get(id)){
@@ -293,8 +293,8 @@ public class Server {
 							if(Command.queryMatch(newResource,(JSONObject)inputObj.get("resourceTemplate"))){
 								String outputStr = newResource.toJSON().toString();	
 								output.writeUTF(outputStr);
-								output.writeUTF("ccc");
-								subscribeResultSize ++;
+							
+								totalSize ++;
 							}
 							subscribeFlag.put(id, false);
 						}
@@ -584,13 +584,14 @@ public class Server {
 	}
 	
 	public static void subscribeOne(DataInputStream input, DataOutputStream output, String ip, int port, String command) throws ParseException {
+		int totalSize = 0;
 		try (Socket socket = new Socket(ip, port)) {
 			// Output and Input Stream
 			DataInputStream subinput = new DataInputStream(socket.getInputStream());
 			DataOutputStream suboutput = new DataOutputStream(socket.getOutputStream());
 			JSONParser parser = new JSONParser();
 			suboutput.writeUTF(command);
-			output.writeUTF("ddd");
+		
 			suboutput.flush();
 			while (true) {
 				if (subinput.available() > 0) {
@@ -600,7 +601,8 @@ public class Server {
 						messageObj = (JSONObject) parser.parse(message);
 						if (!messageObj.containsKey("response")) {
 							output.writeUTF(message);
-							output.writeUTF("eee");
+							totalSize += 1;
+							
 						}
 					}
 					else {
@@ -609,7 +611,7 @@ public class Server {
 							arrayTemp.add(message.split("\n")[i]);
 						}
 						output.writeUTF(arrayTemp.toJSONString());
-						output.writeUTF("fff");
+						totalSize += arrayTemp.size();
 						///
 						//messageObj = (JSONObject) parser.parse(message.split("\n")[0]);
 					}
@@ -620,7 +622,7 @@ public class Server {
 					String Input = input.readUTF();
 					JSONObject InputObj = (JSONObject) parser.parse(Input);
 					if (InputObj.containsKey("command") && InputObj.get("command").toString().equals("UNSUBSCRIBE")) {
-						
+						output.writeUTF(Integer.toString(totalSize));
 						socket.close();
 						//System.out.println("1111");
 					}
