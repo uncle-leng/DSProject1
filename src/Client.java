@@ -11,6 +11,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.RandomAccessFile;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.Arrays;
@@ -61,6 +62,7 @@ public class Client {
 		JSONObject outCommand = commandLine.parse(args, options);
 		String out = outCommand.toString();
 		JSONParser parser = new JSONParser();
+		
 		if(secure){
 			System.setProperty("javax.net.ssl.trustStore", "clientKeystore/root");
 			//System.setProperty("javax.net.debug","all");
@@ -76,6 +78,10 @@ public class Client {
 				OutputStreamWriter outputstreamwriter = new OutputStreamWriter(outputstream);
 				BufferedWriter bufferedwriter = new BufferedWriter(outputstreamwriter);
 				output.writeUTF(out);
+				
+				//JSONObject outjson =(JSONObject) parser.parse(out);
+				
+				
 				/*bufferedwriter.write(out);
 				bufferedwriter.flush();*/
 				
@@ -175,7 +181,7 @@ public class Client {
 							
 							Thread interaction = new Thread(() -> {
 								try {
-									SSLinputWaiting(output,input,sslsocket);
+									SSLinputWaiting(output,input,sslsocket,outCommand.get("id").toString());
 								} catch (URISyntaxException e1) {
 									// TODO Auto-generated catch block
 									e1.printStackTrace();
@@ -199,6 +205,9 @@ public class Client {
 										}
 										}catch (EOFException e){
 											//System.out.println(message);
+											return;
+										}
+										catch (SocketException e){
 											return;
 										}
 									 
@@ -327,7 +336,7 @@ public class Client {
 					
 					Thread interaction = new Thread(() -> {
 						try {
-							inputWaiting(output,input,socket);
+							inputWaiting(output,input,socket,outCommand.get("id").toString());
 						} catch (URISyntaxException e1) {
 							// TODO Auto-generated catch block
 							e1.printStackTrace();
@@ -368,21 +377,21 @@ public class Client {
 	}
 
 		
-	public static void inputWaiting(DataOutputStream output,DataInputStream input,Socket socket) throws URISyntaxException, IOException{
+	public static void inputWaiting(DataOutputStream output,DataInputStream input,Socket socket,String id) throws URISyntaxException, IOException{
 		Scanner scanner = new Scanner(System.in);
 		String inputString = scanner.nextLine();
-		
-		//JSONObject outCommand = commandLine.parse(inputString, options);
+		String commandString[] = ("-unsubscribe -id " + id ).split(" ");
+		JSONObject outCommand = commandLine.parse(commandString, options);
 		//String out = outCommand.toString();
-		//System.out.println(out);
-		output.writeUTF(" ");
-		
+		//System.out.println(outCommand);
+		output.writeUTF(outCommand.toString());
+		String message = "";
 		while (true) {
 			//System.out.println("ssssssss");
 			if (input.available() > 0) {
 
 				try {
-					String message = input.readUTF();
+					message = input.readUTF();
 					System.out.println(message);
 
 					
@@ -390,19 +399,21 @@ public class Client {
 					return;
 					
 				} catch (EOFException e) {
-					
+					System.out.println(message);
+					socket.close();
 				}
 			}
 		}
 	}
-	public static void SSLinputWaiting(DataOutputStream output,DataInputStream input, SSLSocket sslsocket) throws URISyntaxException, IOException{
+	public static void SSLinputWaiting(DataOutputStream output,DataInputStream input, SSLSocket sslsocket,String id) throws URISyntaxException, IOException{
 		Scanner scanner = new Scanner(System.in);
 		String inputString = scanner.nextLine();
-		
-		//JSONObject outCommand = commandLine.parse(inputString, options);
+		String commandString[] = ("-unsubscribe -id " + id ).split(" ");
+		JSONObject outCommand = commandLine.parse(commandString, options);
 		//String out = outCommand.toString();
 		//System.out.println(out);
-		output.writeUTF(" ");
+		//System.out.println(outCommand);
+		output.writeUTF(outCommand.toString());
 		
 		String message="";
 		try{
@@ -419,7 +430,10 @@ public class Client {
 				
 			}
 		} catch (EOFException e) {
+			System.out.println(message);
+
 			
+			sslsocket.close();
 		}
 		}
 	public static int setChunkSize(long fileSizeRemaining) {

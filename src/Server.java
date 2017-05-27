@@ -654,7 +654,7 @@ public class Server {
 			System.out.println("invalid host " + ip);
 
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.out.println("invalid host " + ip);
 
 		}
 
@@ -678,13 +678,41 @@ public class Server {
 
 			while (true) {
 				// if (subinput.available() > 0) {
+//				String message = subinput.readUTF();
+//				JSONParser parser = new JSONParser();
+//				JSONObject messageObj = (JSONObject) parser.parse(message);
+//				if (!messageObj.containsKey("response")) {
+//					output.writeUTF(message);
+//					totalSize.set(0, totalSize.get(0) + 1);
+//				}
+				
+				JSONObject messageObj = new JSONObject();
 				String message = subinput.readUTF();
-				JSONParser parser = new JSONParser();
-				JSONObject messageObj = (JSONObject) parser.parse(message);
-				if (!messageObj.containsKey("response")) {
-					output.writeUTF(message);
-					totalSize.set(0, totalSize.get(0) + 1);
+				if (message.split("\n").length == 1) {
+					JSONParser parser = new JSONParser();
+					messageObj = (JSONObject) parser.parse(message);
+					if (!messageObj.containsKey("response")) {
+						output.writeUTF(message);
+						totalSize.set(0, totalSize.get(0) + 1);
+
+					}
+				} else {
+					JSONArray arrayTemp = new JSONArray();
+					String temp = "";
+					for (int i = 1; i < message.split("\n").length; i++) {
+						arrayTemp.add(message.split("\n")[i]);
+						totalSize.set(0, totalSize.get(0) + 1);
+						temp += message.split("\n")[i];
+					}
+
+					output.writeUTF(temp);
+					// totalSize.set(0, totalSize.get(0) + arrayTemp.size()
+					// - 1);
+					///
+					// messageObj = (JSONObject)
+					// parser.parse(message.split("\n")[0]);
 				}
+
 				// System.out.println(message);
 
 				// }
@@ -871,11 +899,12 @@ public class Server {
 					System.out.println("Invild Host" + ip);
 					secureServerList.remove(rdmint);
 				} catch (IOException e) {
-					e.printStackTrace();
+					secureServerList.remove(rdmint);
 				}
+				catch (Exception e){
 
 			}
-
+			}
 		}
 	}
 
@@ -934,7 +963,7 @@ public class Server {
 						// " !!!");
 						outputTemp.writeUTF(finalQueryResult);
 						// outputTemp.writeUTF("finished");
-						System.out.println("finished");
+						//System.out.println("finished");
 						outputTemp.flush();
 
 					}
@@ -1283,10 +1312,11 @@ public class Server {
 
 			responJson.put("resultSize", subscribeResultSize[0]);
 			output.writeUTF(responJson.toString());
+			//System.out.println("socket close");
 			clientSocket.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
 
 		return;
@@ -1300,7 +1330,9 @@ public class Server {
 			JSONObject responJson = new JSONObject();
 
 			responJson.put("resultSize", subscribeResultSize.get(0));
+			
 			output.writeUTF(responJson.toString());
+			//System.out.println("socket close");
 			clientSocket.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
