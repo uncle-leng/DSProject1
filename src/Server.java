@@ -74,6 +74,7 @@ public class Server {
 	private static boolean queryComplete = false;
 	private static String queryRelayResult = "";
 	
+	//public static int totalSize = 0;
 
 	public static void main(String[] args) throws URISyntaxException {
 		
@@ -96,13 +97,7 @@ public class Server {
 
 			Command command = new Command();
 			JSONParser parser = new JSONParser();
-			// String input =
 
-			/*for (String hostRecord : serverList) {
-				String ip = hostRecord.split(":")[0];
-				int port = Integer.parseInt(hostRecord.split(":")[1]);
-				// Thread queryRelay = new Thread( () -> client(ip, port, ))
-			}*/
 
 			Thread interaction = new Thread(() -> timer());
 			interaction.start();
@@ -264,12 +259,13 @@ public class Server {
 				else if (inputObj.containsKey("relay") && inputObj.get("relay").toString().equals("true")) {
 					JSONObject inputObjTemp = inputObj;
 					inputObjTemp.put("relay", false);
-					
+					ArrayList<Integer> totalSize = new ArrayList();
+					totalSize.add(0);
 					
 					Thread t = new Thread(() -> {
 						try {
 
-							subscribeRelay(input, output, client, serverList, inputObj.toJSONString());
+							subscribeRelay(input, output, client, serverList, inputObjTemp.toJSONString(), totalSize);
 						} catch (ParseException | IOException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -285,22 +281,25 @@ public class Server {
 							JSONObject inputObjSubscribe = (JSONObject) parser.parse(inputUTFSubscribe);
 							if (inputObjSubscribe.containsKey("command") && inputObjSubscribe.get("command").toString().equals("UNSUBSCRIBE")) {
 								JSONObject responJson = new JSONObject();
-								responJson.put("resultSize", subscribeResultSize);
+								responJson.put("resultSize", totalSize.get(0));
 								output.writeUTF(responJson.toString());
+								output.flush();
 								clientSocket.close();
 								return;
 							}
 							else {
 								output.writeUTF(inputUTFSubscribe);
-								subscribeResultSize ++;
+								System.out.println(inputUTFSubscribe);
+								totalSize.set(0, totalSize.get(0) + 1);
 							}
 						}
 						if(subscribeFlag.get(id)){
 							
 							if(Command.queryMatch(newResource,(JSONObject)inputObj.get("resourceTemplate"))){
-								String outputStr = newResource.toJSON().toString();	
+								String outputStr = newResource.toString();	
 								output.writeUTF(outputStr);
-								subscribeResultSize ++;
+								System.out.println(outputStr);
+								totalSize.set(0, totalSize.get(0) + 1);
 							}
 							subscribeFlag.put(id, false);
 						}
@@ -323,7 +322,7 @@ public class Server {
 				// System.out.println(input.readUTF());
 
 				System.out.println(response);
-//responseObj=(JSONObject)parser.parse(response);
+
 				// System.out.println(responseObj.get("response"));
 
 				
@@ -407,8 +406,11 @@ public class Server {
 						responseObj = (JSONObject) parser.parse(resStatus);
 					}
 					// System.out.println(inputObj.get("command"));
+					System.out.println(inputObj.toJSONString());
+					System.out.println(responseObj);
 					if (inputObj.get("command").toString().equals("EXCHANGE")
 							&& responseObj.get("response").toString().equals("success")) {
+						
 						String serverListStr = inputObj.get("serverList").toString();
 						JSONArray serverArray = (JSONArray) parser.parse(serverListStr);
 						for (int i = 0; i < serverArray.size(); i++) {
@@ -428,6 +430,7 @@ public class Server {
 							}
 
 						}
+						//System.out.println(serverList);
 		
 					}
 					/////////////////////////////////////////////////////////////////////////////
@@ -520,9 +523,7 @@ public class Server {
 					}
 				}
 			}
-			/*if(!inputObj.get("command").toString().equals("SUBSCRIBE")){
-				clientSocket.close();
-				}*/
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (ParseException e) {
@@ -563,15 +564,14 @@ public class Server {
 
 	}
 	
-	public static void subscribeRelay(DataInputStream input, DataOutputStream output, Socket socket, ArrayList<String> serverList, String command) throws ParseException, IOException {
+	public static void subscribeRelay(DataInputStream input, DataOutputStream output, Socket socket, ArrayList<String> serverList, String command, ArrayList<Integer> totalSize) throws ParseException, IOException {
 
-		for (String server : serverList) {
-			///
+		for (String server : serverList) {			
 			String ip = server.split(":")[0];
 			int port = Integer.parseInt(server.split(":")[1]);
 			Thread t = new Thread(() -> {
 				try {
-					subscribeOne(input, output, ip, port, command);
+					subscribeOne(input, output, ip, port, command, totalSize);
 				} catch (ParseException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -581,7 +581,7 @@ public class Server {
 
 	}
 	}
-	public static void SSLsubscribeRelay(DataInputStream input, DataOutputStream output, Socket socket, ArrayList<String> serverList, String command) throws ParseException, IOException {
+	public static void SSLsubscribeRelay(DataInputStream input, DataOutputStream output, Socket socket, ArrayList<String> serverList, String command, ArrayList<Integer> totalSize) throws ParseException, IOException {
 
 		for (String server : serverList) {
 			///
@@ -589,7 +589,7 @@ public class Server {
 			int port = Integer.parseInt(server.split(":")[1]);
 			Thread t = new Thread(() -> {
 				try {
-					subscribeOne(input, output, ip, port, command);
+					subscribeOne(input, output, ip, port, command ,totalSize);
 				} catch (ParseException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -600,24 +600,53 @@ public class Server {
 	}
 	}
 	
-	public static void subscribeOne(DataInputStream input, DataOutputStream output, String ip, int port, String command) throws ParseException {
+	public static void subscribeOne(DataInputStream input, DataOutputStream output, String ip, int port, String command, ArrayList<Integer> totalSize) throws ParseException {
+
 		try (Socket socket = new Socket(ip, port)) {
 			// Output and Input Stream
 			DataInputStream subinput = new DataInputStream(socket.getInputStream());
 			DataOutputStream suboutput = new DataOutputStream(socket.getOutputStream());
+			JSONParser parser = new JSONParser();
 			suboutput.writeUTF(command);
+		
 			suboutput.flush();
 			while (true) {
 				if (subinput.available() > 0) {
-
+					JSONObject messageObj = new JSONObject();
 					String message = subinput.readUTF();
-					JSONParser parser = new JSONParser();
-					JSONObject messageObj = (JSONObject) parser.parse(message);
-					if (!messageObj.containsKey("response")) {
-						output.writeUTF(message);
+					if (message.split("\n").length == 1){
+						messageObj = (JSONObject) parser.parse(message);
+						if (!messageObj.containsKey("response")) {
+							output.writeUTF(message);
+							totalSize.set(0, totalSize.get(0) + 1);
+							
+						}
 					}
-					// System.out.println(message);
+					else {
+						JSONArray arrayTemp = new JSONArray();
+						String temp = "";
+						for (int i = 1; i < message.split("\n").length; i++) {
+							arrayTemp.add(message.split("\n")[i]);
+							totalSize.set(0, totalSize.get(0) + 1);
+							temp += message.split("\n")[i];
+						}
+						
+						output.writeUTF(temp);
+						//totalSize.set(0, totalSize.get(0) + arrayTemp.size() - 1);
+						///
+						//messageObj = (JSONObject) parser.parse(message.split("\n")[0]);
+					}
 	
+	
+				}
+				if (input.available() > 0) {
+					String Input = input.readUTF();
+					JSONObject InputObj = (JSONObject) parser.parse(Input);
+					if (InputObj.containsKey("command") && InputObj.get("command").toString().equals("UNSUBSCRIBE")) {
+				;
+						socket.close();
+						//System.out.println("1111");
+					}
 				}
 			}
 		} catch (ConnectException e) {
@@ -896,12 +925,13 @@ public class Server {
 				else if (inputObj.containsKey("relay") && inputObj.get("relay").toString().equals("true")) {
 					JSONObject inputObjTemp = inputObj;
 					inputObjTemp.put("relay", false);
-					
+					ArrayList<Integer> totalSize = new ArrayList();
+					totalSize.add(0);
 					
 					Thread t = new Thread(() -> {
 						try {
 
-							subscribeRelay(input, output, client, serverList, inputObj.toJSONString());
+							subscribeRelay(input, output, client, serverList, inputObj.toJSONString(), totalSize);
 						} catch (ParseException | IOException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
