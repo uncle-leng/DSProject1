@@ -583,7 +583,7 @@ public class Server {
 	}
 	public static void SSLsubscribeRelay(DataInputStream input, DataOutputStream output, Socket socket, ArrayList<String> serverList, String command, ArrayList<Integer> totalSize) throws ParseException, IOException {
 
-		for (String server : serverList) {
+		for (String server : secureServerList) {
 			///
 			String ip = server.split(":")[0];
 			int port = Integer.parseInt(server.split(":")[1]);
@@ -748,10 +748,11 @@ public class Server {
 		public void run() {
 			System.out.println("Start automatical exchange...");
 			/////
-			if (serverList.isEmpty()) {
+			if (serverList.isEmpty() && secureServerList.isEmpty()) {
 				System.out.println("empty serverlist!");
 				return;
 			}
+			if(!serverList.isEmpty()){
 			Random rdm = new Random();
 			int rdmint = (int) (serverList.size() * rdm.nextDouble());
 			String ip = serverList.get(rdmint).split(":")[0];
@@ -796,6 +797,51 @@ public class Server {
 			}
 
 		}
+		if(!secureServerList.isEmpty()){
+			Random rdm = new Random();
+			int rdmint = (int) (secureServerList.size() * rdm.nextDouble());
+			String ip = secureServerList.get(rdmint).split(":")[0];
+			int port = Integer.parseInt(secureServerList.get(rdmint).split(":")[1]);
+			JSONObject command = new JSONObject();
+			JSONArray serversArray = new JSONArray();
+			for (int i = 0; i < secureServerList.size(); i++) {
+				JSONObject obj = new JSONObject();
+				obj.put("hostname", secureServerList.get(i).split(":")[0]);
+				obj.put("port", secureServerList.get(i).split(":")[1]);
+				serversArray.add(obj);
+			}
+			command.put("command", "EXCHANGE");
+			command.put("serverList", serversArray.toJSONString());
+			String outCommand = command.toString();
+			try (Socket socket = new Socket(ip, port)) {
+				// Output and Input Stream
+				DataInputStream input = new DataInputStream(socket.getInputStream());
+				DataOutputStream output = new DataOutputStream(socket.getOutputStream());
+
+				output.writeUTF(outCommand);
+				output.flush();
+
+				if (input.available() > 0) {
+
+					String message = input.readUTF();
+					System.out.println("Server " + secureServerList.get(rdmint).split(":")[0]);
+					System.out.println("port " + secureServerList.get(rdmint).split(":")[1]);
+					System.out.println("incoming:");
+					System.out.println(message);
+				}
+
+			} catch (ConnectException e) {
+				System.out.println("Invild Host" + ip);
+				secureServerList.remove(rdmint);
+				// hahhahahha
+			} catch (UnknownHostException e) {
+				System.out.println("Invild Host" + ip);
+				secureServerList.remove(rdmint);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+		}}
 	}
 	private static void SSLserveClient(Socket client) throws URISyntaxException {
 		Command command = new Command();
