@@ -409,6 +409,8 @@ public class Command {
 				finalResult.add(error);
 			} 
 			else {
+				
+				
 				for (Resource resource : allResource) {
 					for (int i = 0; i < resource.getTags().size(); i++) {
 						String temp = resource.getTags().get(i).replace("[", "").replace("]", "");
