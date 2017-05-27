@@ -1038,6 +1038,7 @@ public class Server {
 							// }
 
 							// System.out.println("dtcvghbjjncfcfvbxcvb");
+							try{
 							if (subscribeFlag.get(id)) {
 
 								if (Command.queryMatch(newResource, (JSONObject) inputObj.get("resourceTemplate"))) {
@@ -1046,6 +1047,9 @@ public class Server {
 									subscribeResultSize[0] += 1;
 								}
 								subscribeFlag.put(id, false);
+							}
+							}catch(Exception e){
+								
 							}
 						}
 					}
@@ -1102,7 +1106,8 @@ public class Server {
 								if (Command.queryMatch(newResource, (JSONObject) inputObj.get("resourceTemplate"))) {
 									String outputStr = newResource.toString();
 									output.writeUTF(outputStr);
-									subscribeResultSize[0]++;
+									totalSize.set(0, totalSize.get(0) + 1);
+									//subscribeResultSize[0]++;
 								}
 								subscribeFlag.put(id, false);
 							}
