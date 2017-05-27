@@ -67,8 +67,8 @@ public class Client {
 			SSLSocketFactory sslsocketfactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
 			try {
 				SSLSocket sslsocket = (SSLSocket) sslsocketfactory.createSocket(host, port);
-				DataInputStream inputstream = new DataInputStream(sslsocket.getInputStream());
-				InputStreamReader inputstreamreader = new InputStreamReader(inputstream);
+				DataInputStream input = new DataInputStream(sslsocket.getInputStream());
+				InputStreamReader inputstreamreader = new InputStreamReader(input);
 				BufferedReader bufferedreader = new BufferedReader(inputstreamreader);
 				
 				OutputStream outputstream = sslsocket.getOutputStream();
@@ -93,7 +93,7 @@ public class Client {
 				if (!outCommand.isEmpty()) {
 					if (!outCommand.get("command").toString().equals("FETCH") && !outCommand.get("command").toString().equals("SUBSCRIBE")) {
 								try {
-									String message=inputstream.readUTF();
+									String message=input.readUTF();
 									System.out.println(message);
 
 									if (commandLine.debug(args, options)) {
@@ -103,9 +103,9 @@ public class Client {
 									return;
 									
 								} catch (EOFException e) {
-System.out.println("hello");
+										//System.out.println("hello");
 								}
-							}
+							
 						}else if(outCommand.get("command").toString().equals("FETCH")){
 							try {
 								String message = bufferedreader.readLine();
@@ -148,7 +148,7 @@ System.out.println("hello");
 
 							System.out.println("Downloading " + fileName + " of size " + fileSizeRemaining);
 							try {
-								while ((num = inputstream.read(receiveBuffer)) > 0) {//may cause bug
+								while ((num = input.read(receiveBuffer)) > 0) {//may cause bug
 									downloadingFile.write(Arrays.copyOf(receiveBuffer, num));
 
 									fileSizeRemaining -= num;
@@ -175,7 +175,7 @@ System.out.println("hello");
 							
 							Thread interaction = new Thread(() -> {
 								try {
-									SSLinputWaiting(bufferedwriter,bufferedreader,sslsocket);
+									SSLinputWaiting(output,input,sslsocket);
 								} catch (URISyntaxException e1) {
 									// TODO Auto-generated catch block
 									e1.printStackTrace();
@@ -188,19 +188,25 @@ System.out.println("hello");
 							
 							
 							String message=null;
-							while ((message = bufferedreader.readLine()) != null){
-
-									
+							while(true){
+							//while ((message = bufferedreader.readLine()) != null){
+										try{
+										message = input.readUTF();
 										System.out.println(message);
 
 										if (commandLine.debug(args, options)) {
 											logger.fine("RECEIVED:" + message);
 										}
+										}catch (EOFException e){
+											//System.out.println(message);
+											return;
+										}
 									 
 								}
-							}
+							//}
+						}
 					}
-					
+			}	
 
 				catch (UnknownHostException e) {
 				// TODO Auto-generated catch block
@@ -209,7 +215,8 @@ System.out.println("hello");
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		}
+		
+			}
 		else{
 
 		try (Socket socket = new Socket(host, port)) {
@@ -387,29 +394,32 @@ System.out.println("hello");
 			}
 		}
 	}
-	public static void SSLinputWaiting(BufferedWriter bufferedwriter,BufferedReader bufferedreader,SSLSocket sslsocket) throws URISyntaxException, IOException{
+	public static void SSLinputWaiting(DataOutputStream output,DataInputStream input, SSLSocket sslsocket) throws URISyntaxException, IOException{
 		Scanner scanner = new Scanner(System.in);
-		String[] inputString = scanner.nextLine().split(" ");
+		String inputString = scanner.nextLine();
 		
-		JSONObject outCommand = commandLine.parse(inputString, options);
-		String out = outCommand.toString();
-		System.out.println(out);
-		bufferedwriter.write(out);
+		//JSONObject outCommand = commandLine.parse(inputString, options);
+		//String out = outCommand.toString();
+		//System.out.println(out);
+		output.writeUTF(" ");
 		
-		String message=null;
-		while ((message = bufferedreader.readLine()) != null){
+		String message="";
+		try{
+			
+		while ((message = input.readUTF()) != null){
 
-				try {
+		
 					System.out.println(message);
 
 					
 					sslsocket.close();
 					return;
 					
-				} catch (EOFException e) {
-					
-				}
+				
 			}
+		} catch (EOFException e) {
+			
+		}
 		}
 	public static int setChunkSize(long fileSizeRemaining) {
 		int chunkSize = 1024 * 1024;

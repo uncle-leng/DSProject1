@@ -3,6 +3,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -30,6 +31,7 @@ import javax.net.ServerSocketFactory;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
 
 import org.apache.commons.cli.Options;
 import org.apache.commons.lang.RandomStringUtils;
@@ -223,7 +225,7 @@ public class Server {
 					resultStr += result.toJSONString() + "\n";
 					}
 				}
-				output.writeUTF(resultStr);
+				output.writeUTF(resultStr.substring(0, resultStr.length() - 2));
 				
 				
 				if(success){					
@@ -232,16 +234,16 @@ public class Server {
 					while(true){
 						if(input.available() > 0){
 							String inputUTFSubscribe = input.readUTF();
-							System.out.println(inputUTFSubscribe);
+							//System.out.println(inputUTFSubscribe);
 							//JSONObject responseObjSubscribe = new JSONObject();
-							JSONObject inputObjSubscribe = (JSONObject) parser.parse(inputUTFSubscribe);
-							if(inputObjSubscribe.get("command").toString().equals("UNSUBSCRIBE")){
+							//JSONObject inputObjSubscribe = (JSONObject) parser.parse(inputUTFSubscribe);
+							//if(inputObjSubscribe.get("command").toString().equals("UNSUBSCRIBE")){
 								JSONObject responJson = new JSONObject();
 								responJson.put("resultSize", subscribeResultSize);
 								output.writeUTF(responJson.toString());
 								clientSocket.close();
 								return;
-							}
+							//}
 						}
 					
 						if(subscribeFlag.get(id)){
@@ -265,7 +267,7 @@ public class Server {
 					Thread t = new Thread(() -> {
 						try {
 
-							subscribeRelay(input, output, client, serverList, inputObjTemp.toJSONString(), totalSize);
+							subscribeRelay(input, output, serverList, inputObjTemp.toJSONString(), totalSize);
 						} catch (ParseException | IOException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -279,19 +281,19 @@ public class Server {
 							String inputUTFSubscribe = input.readUTF();
 							System.out.println(inputUTFSubscribe);
 							JSONObject inputObjSubscribe = (JSONObject) parser.parse(inputUTFSubscribe);
-							if (inputObjSubscribe.containsKey("command") && inputObjSubscribe.get("command").toString().equals("UNSUBSCRIBE")) {
+							//if (inputObjSubscribe.containsKey("command") && inputObjSubscribe.get("command").toString().equals("UNSUBSCRIBE")) {
 								JSONObject responJson = new JSONObject();
 								responJson.put("resultSize", totalSize.get(0));
 								output.writeUTF(responJson.toString());
 								output.flush();
 								clientSocket.close();
 								return;
-							}
-							else {
-								output.writeUTF(inputUTFSubscribe);
-								System.out.println(inputUTFSubscribe);
-								totalSize.set(0, totalSize.get(0) + 1);
-							}
+//							}
+//							else {
+//								output.writeUTF(inputUTFSubscribe);
+//								System.out.println(inputUTFSubscribe);
+//								totalSize.set(0, totalSize.get(0) + 1);
+//							}
 						}
 						if(subscribeFlag.get(id)){
 							
@@ -406,8 +408,8 @@ public class Server {
 						responseObj = (JSONObject) parser.parse(resStatus);
 					}
 					// System.out.println(inputObj.get("command"));
-					System.out.println(inputObj.toJSONString());
-					System.out.println(responseObj);
+					//System.out.println(inputObj.toJSONString());
+					//System.out.println(responseObj);
 					if (inputObj.get("command").toString().equals("EXCHANGE")
 							&& responseObj.get("response").toString().equals("success")) {
 						
@@ -564,7 +566,41 @@ public class Server {
 
 	}
 	
-	public static void subscribeRelay(DataInputStream input, DataOutputStream output, Socket socket, ArrayList<String> serverList, String command, ArrayList<Integer> totalSize) throws ParseException, IOException {
+	public static String SSLClient(String ip, int port, String command) {
+		
+		System.setProperty("javax.net.ssl.trustStore", "clientKeystore/root");
+		SSLSocketFactory sslsocketfactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
+		try {
+			// Output and Input Stream
+			SSLSocket sslsocket = (SSLSocket) sslsocketfactory.createSocket(ip, port);
+			DataInputStream input = new DataInputStream(sslsocket.getInputStream());
+			DataOutputStream output=new DataOutputStream(sslsocket.getOutputStream());
+			output.writeUTF(command);
+			output.flush();
+			while (true) {
+				
+
+					String message = input.readUTF();
+					// System.out.println(message);
+					return message;
+				
+			}
+		} catch (ConnectException e) {
+			System.out.println("Invild Host " + ip);
+			return "error";
+		} catch (UnknownHostException e) {
+			System.out.println("invalid host " + ip);
+			return "error";
+
+		} catch (IOException e) {
+			e.printStackTrace();
+			return "error";
+
+		}
+
+	}
+	
+	public static void subscribeRelay(DataInputStream input, DataOutputStream output, ArrayList<String> serverList, String command, ArrayList<Integer> totalSize) throws ParseException, IOException {
 
 		for (String server : serverList) {			
 			String ip = server.split(":")[0];
@@ -581,7 +617,7 @@ public class Server {
 
 	}
 	}
-	public static void SSLsubscribeRelay(DataInputStream input, DataOutputStream output, Socket socket, ArrayList<String> serverList, String command, ArrayList<Integer> totalSize) throws ParseException, IOException {
+	public static void SSLsubscribeRelay(DataInputStream input, DataOutputStream output, ArrayList<String> serverList, String command, ArrayList<Integer> totalSize) throws ParseException, IOException {
 
 		for (String server : secureServerList) {
 			///
@@ -642,11 +678,11 @@ public class Server {
 				if (input.available() > 0) {
 					String Input = input.readUTF();
 					JSONObject InputObj = (JSONObject) parser.parse(Input);
-					if (InputObj.containsKey("command") && InputObj.get("command").toString().equals("UNSUBSCRIBE")) {
-				;
+//					if (InputObj.containsKey("command") && InputObj.get("command").toString().equals("UNSUBSCRIBE")) {
+//				;
 						socket.close();
 						//System.out.println("1111");
-					}
+					//}
 				}
 			}
 		} catch (ConnectException e) {
@@ -706,6 +742,26 @@ public class Server {
 			String ip = server.split(":")[0];
 			int port = Integer.parseInt(server.split(":")[1]);
 			String[] queryTemp = Client(ip, port, command).split("\n");
+			JSONObject queryRes = (JSONObject) parser.parse(queryTemp[0]);
+			if (queryRes.get("response").equals("success")) {
+				for (int i = 1; i < queryTemp.length - 1; i++) {
+					queryResult += queryTemp[i] + "\n";
+				}
+			}
+
+		}
+		queryComplete = true;
+		return queryResult;
+
+	}
+	public static String getAllQuerySSL(ArrayList<String> serverList, String command) throws ParseException {
+		// boolean queryComplete = false;
+		String queryResult = "";
+		JSONParser parser = new JSONParser();
+		for (String server : serverList) {
+			String ip = server.split(":")[0];
+			int port = Integer.parseInt(server.split(":")[1]);
+			String[] queryTemp = SSLClient(ip, port, command).split("\n");
 			JSONObject queryRes = (JSONObject) parser.parse(queryTemp[0]);
 			if (queryRes.get("response").equals("success")) {
 				for (int i = 1; i < queryTemp.length - 1; i++) {
@@ -813,22 +869,29 @@ public class Server {
 			command.put("command", "EXCHANGE");
 			command.put("serverList", serversArray.toJSONString());
 			String outCommand = command.toString();
-			try (Socket socket = new Socket(ip, port)) {
 				// Output and Input Stream
-				DataInputStream input = new DataInputStream(socket.getInputStream());
-				DataOutputStream output = new DataOutputStream(socket.getOutputStream());
-
-				output.writeUTF(outCommand);
-				output.flush();
-
-				if (input.available() > 0) {
-
-					String message = input.readUTF();
-					System.out.println("Server " + secureServerList.get(rdmint).split(":")[0]);
-					System.out.println("port " + secureServerList.get(rdmint).split(":")[1]);
-					System.out.println("incoming:");
-					System.out.println(message);
-				}
+//				DataInputStream input = new DataInputStream(socket.getInputStream());
+//				DataOutputStream output = new DataOutputStream(socket.getOutputStream());
+//
+//				output.writeUTF(outCommand);
+//				output.flush();
+//
+//				if (input.available() > 0) {
+//
+//					String message = input.readUTF();
+//					System.out.println("Server " + secureServerList.get(rdmint).split(":")[0]);
+//					System.out.println("port " + secureServerList.get(rdmint).split(":")[1]);
+//					System.out.println("incoming:");
+//					System.out.println(message);
+//				}
+				System.setProperty("javax.net.ssl.trustStore", "clientKeystore/root");
+				//System.setProperty("javax.net.debug","all");
+				SSLSocketFactory sslsocketfactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
+				try {
+					SSLSocket sslsocket = (SSLSocket) sslsocketfactory.createSocket(ip, port);
+					DataInputStream inputstream = new DataInputStream(sslsocket.getInputStream());
+					DataOutputStream output=new DataOutputStream(sslsocket.getOutputStream());
+					output.writeUTF(outCommand);
 
 			} catch (ConnectException e) {
 				System.out.println("Invild Host" + ip);
@@ -841,7 +904,9 @@ public class Server {
 				e.printStackTrace();
 			}
 
-		}}
+		}
+			
+	}
 	}
 	private static void SSLserveClient(Socket client) throws URISyntaxException {
 		Command command = new Command();
@@ -873,7 +938,7 @@ public class Server {
 				 */
 				// Thread queryRelay = new Thread( () -> {
 				try (Socket clientSocketTemp = client) {
-					queryRelayResult = getAllQuery(serverList, tempObj.toJSONString());
+					queryRelayResult = getAllQuerySSL(secureServerList, tempObj.toJSONString());
 					// System.out.println(queryRelayResult);
 					DataInputStream inputTemp = new DataInputStream(clientSocketTemp.getInputStream());
 					// Output Stream
@@ -894,8 +959,10 @@ public class Server {
 						resultSize.put("resultSize", size);
 						finalQueryResult += resultSize.toJSONString() + "\n";
 						//System.out.println(finalQueryResult);
-						outputTemp.writeUTF("Server: Hi Client " + counter + " !!!");
+						//outputTemp.writeUTF("Server: Hi Client " + counter + " !!!");
 						outputTemp.writeUTF(finalQueryResult);
+						//outputTemp.writeUTF("finished");
+						System.out.println("finished");
 						outputTemp.flush();
 
 					}
@@ -919,12 +986,12 @@ public class Server {
 			{	
 				ArrayList<JSONObject> resultJsonList = (ArrayList<JSONObject>) ((JSONObject)parser.parse(command.parseCommand(inputUTF))).get("result");
 				String resultStr = "";
-				int subscribeResultSize = 0;
+				int subscribeResultSize[] = {0};
 				boolean success = false;
 				String id = "";
 				for (JSONObject result : resultJsonList) {
 					if(result.containsKey("resultSize")){
-						subscribeResultSize = Integer.parseInt(result.get("resultSize").toString());
+						subscribeResultSize[0] = Integer.parseInt(result.get("resultSize").toString());
 					}
 					else{
 					if(result.containsKey("response")){
@@ -935,33 +1002,45 @@ public class Server {
 					resultStr += result.toJSONString() + "\n";
 					}
 				}
-				output.writeUTF(resultStr);
+				//System.out.println(resultStr);
+				output.writeUTF(resultStr.substring(0, resultStr.length() - 2));
+				//System.out.println(resultStr);
 				
 				
 				if(success){					
 					subscribeFlag.put(id, false);
 				if (inputObj.containsKey("relay") && inputObj.get("relay").toString().equals("false")) {
+					Thread inputwaiting = new Thread(() -> inputWaitingSSL(input, output, subscribeResultSize,clientSocket));
+					inputwaiting.start();
 					while(true){
 						//if(input.available() > 0){
-							String inputUTFSubscribe = input.readUTF();
-							System.out.println(inputUTFSubscribe);
-							//JSONObject responseObjSubscribe = new JSONObject();
-							JSONObject inputObjSubscribe = (JSONObject) parser.parse(inputUTFSubscribe);
-							if(inputObjSubscribe.get("command").toString().equals("UNSUBSCRIBE")){
-								JSONObject responJson = new JSONObject();
-								responJson.put("resultSize", subscribeResultSize);
-								output.writeUTF(responJson.toString());
-								clientSocket.close();
-								return;
-							}
-						//}
-					
-						if(subscribeFlag.get(id)){
 						
+//						try{
+//							if(input.!= -1){
+//							//input.readUTF();
+//							//System.out.println(inputUTFSubscribe);
+//							//JSONObject responseObjSubscribe = new JSONObject();
+//							//JSONObject inputObjSubscribe = (JSONObject) parser.parse(inputUTFSubscribe);
+//							//if(inputObjSubscribe.get("command").toString().equals("UNSUBSCRIBE")){
+//								JSONObject responJson = new JSONObject();
+//								responJson.put("resultSize", subscribeResultSize);
+//								output.writeUTF(responJson.toString());
+//								clientSocket.close();
+//								return;
+//							//}}
+//						//}}
+//							}
+//						}catch(EOFException e){
+//							
+//						}
+							
+						//System.out.println("dtcvghbjjncfcfvbxcvb");
+						if(subscribeFlag.get(id)){
+							
 							if(Command.queryMatch(newResource,(JSONObject)inputObj.get("resourceTemplate"))){
 								String outputStr = newResource.toJSON().toString();	
 								output.writeUTF(outputStr);
-								subscribeResultSize ++;
+								subscribeResultSize[0] ++;
 							}
 							subscribeFlag.put(id, false);
 						}
@@ -972,43 +1051,51 @@ public class Server {
 					JSONObject inputObjTemp = inputObj;
 					inputObjTemp.put("relay", false);
 					ArrayList<Integer> totalSize = new ArrayList();
-					totalSize.add(0);
-					
+					totalSize.add(subscribeResultSize[0]);
+					//
 					Thread t = new Thread(() -> {
 						try {
 
-							subscribeRelay(input, output, client, serverList, inputObj.toJSONString(), totalSize);
+							subscribeRelay(input, output,  serverList, inputObj.toJSONString(), totalSize);
 						} catch (ParseException | IOException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
 					});
 					t.start();
+					
+					Thread inputwaiting = new Thread(() -> inputWaitingSSL(input, output,totalSize ,clientSocket));
+					inputwaiting.start();
 					while (true) {
 			
 						
-						//if (input.available() > 0) {
-							String inputUTFSubscribe = input.readUTF();
-							System.out.println(inputUTFSubscribe);
-							JSONObject inputObjSubscribe = (JSONObject) parser.parse(inputUTFSubscribe);
-							if (inputObjSubscribe.containsKey("command") && inputObjSubscribe.get("command").toString().equals("UNSUBSCRIBE")) {
-								JSONObject responJson = new JSONObject();
-								responJson.put("resultSize", subscribeResultSize);
-								output.writeUTF(responJson.toString());
-								clientSocket.close();
-								return;
-							}
-							else {
-								output.writeUTF(inputUTFSubscribe);
-								subscribeResultSize ++;
-							}
-						//}
+//						//if (input.available() > 0) {
+//						try {
+////							String inputUTFSubscribe = input.readUTF();
+////							System.out.println(inputUTFSubscribe);
+////							JSONObject inputObjSubscribe = (JSONObject) parser.parse(inputUTFSubscribe);
+////							//if (inputObjSubscribe.containsKey("command") && inputObjSubscribe.get("command").toString().equals("UNSUBSCRIBE")) {
+////								JSONObject responJson = new JSONObject();
+////								responJson.put("resultSize", subscribeResultSize[0]);
+////								output.writeUTF(responJson.toString());
+////								clientSocket.close();
+////								return;
+//						}catch (EOFException e){
+//							
+//						}
+//							}
+//							else {
+//								output.writeUTF(inputUTFSubscribe);
+//								subscribeResultSize ++;
+//							}
+//						//}
+					
 						if(subscribeFlag.get(id)){
 							
 							if(Command.queryMatch(newResource,(JSONObject)inputObj.get("resourceTemplate"))){
 								String outputStr = newResource.toJSON().toString();	
 								output.writeUTF(outputStr);
-								subscribeResultSize ++;
+								subscribeResultSize[0] ++;
 							}
 							subscribeFlag.put(id, false);
 						}
@@ -1239,6 +1326,44 @@ public class Server {
 		}catch(NullPointerException e){
 			e.printStackTrace();
 		}
+	}
+
+	private static void inputWaitingSSL(DataInputStream input, DataOutputStream output, int[] subscribeResultSize,
+			Socket clientSocket) {
+		
+		
+		try {
+			input.readUTF();
+			JSONObject responJson = new JSONObject();
+			
+			responJson.put("resultSize", subscribeResultSize[0]);
+			output.writeUTF(responJson.toString());
+			clientSocket.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return;
+	}
+	
+	private static void inputWaitingSSL(DataInputStream input, DataOutputStream output, ArrayList<Integer> subscribeResultSize,
+			Socket clientSocket) {
+		
+		
+		try {
+			input.readUTF();
+			JSONObject responJson = new JSONObject();
+			
+			responJson.put("resultSize", subscribeResultSize.get(0));
+			output.writeUTF(responJson.toString());
+			clientSocket.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return;
 	}
 
 	private static void secureSocket(){
