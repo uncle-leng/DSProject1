@@ -1125,14 +1125,14 @@ public class Server {
 							String port = serverArray.get(i).toString().split(",")[1].split(":")[1].replace("}", "")
 									.replaceAll("\"", "");
 							String serverRecord = ip + ":" + port;
-							for (int j = 0; j < serverList.size(); j++) {
-								if (serverList.get(j).equals(serverRecord)) {
+							for (int j = 0; j < secureServerList.size(); j++) {
+								if (secureServerList.get(j).equals(serverRecord)) {
 									dup = true;
 								}
 							}
 							if (dup == false && !serverRecord.split(":")[0]
 									.equals(InetAddress.getLocalHost().toString().split("/")[1])) {
-								serverList.add(serverRecord);
+								secureServerList.add(serverRecord);
 							}
 
 						}
