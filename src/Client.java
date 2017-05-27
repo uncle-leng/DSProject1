@@ -1,9 +1,14 @@
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.RandomAccessFile;
 import java.net.Socket;
 import java.net.URISyntaxException;
@@ -14,6 +19,8 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
 import javax.swing.text.html.parser.Parser;
 
 import org.apache.commons.cli.Options;
@@ -54,6 +61,157 @@ public class Client {
 		JSONObject outCommand = commandLine.parse(args, options);
 		String out = outCommand.toString();
 		JSONParser parser = new JSONParser();
+		if(secure){
+			System.setProperty("javax.net.ssl.trustStore", "clientKeystore/root");
+			//System.setProperty("javax.net.debug","all");
+			SSLSocketFactory sslsocketfactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
+			try {
+				SSLSocket sslsocket = (SSLSocket) sslsocketfactory.createSocket(host, port);
+				DataInputStream inputstream = new DataInputStream(sslsocket.getInputStream());
+				InputStreamReader inputstreamreader = new InputStreamReader(inputstream);
+				BufferedReader bufferedreader = new BufferedReader(inputstreamreader);
+				
+				OutputStream outputstream = sslsocket.getOutputStream();
+				DataOutputStream output=new DataOutputStream(sslsocket.getOutputStream());
+				OutputStreamWriter outputstreamwriter = new OutputStreamWriter(outputstream);
+				BufferedWriter bufferedwriter = new BufferedWriter(outputstreamwriter);
+				output.writeUTF(out);
+				/*bufferedwriter.write(out);
+				bufferedwriter.flush();*/
+				
+				Logger logger = Logger.getLogger("Client");
+				logger.setLevel(Level.ALL);
+				ConsoleHandler consoleHandler = new ConsoleHandler();
+				consoleHandler.setLevel(Level.ALL);
+				logger.addHandler(consoleHandler);
+				if (commandLine.debug(args, options)) {
+
+					logger.info("setting debug on");
+					logger.fine("SENT:" + outCommand);
+				}
+				
+				if (!outCommand.isEmpty()) {
+					if (!outCommand.get("command").toString().equals("FETCH") && !outCommand.get("command").toString().equals("SUBSCRIBE")) {
+								try {
+									String message=inputstream.readUTF();
+									System.out.println(message);
+
+									if (commandLine.debug(args, options)) {
+										logger.fine("RECEIVED:" + message);
+									}
+									sslsocket.close();
+									return;
+									
+								} catch (EOFException e) {
+System.out.println("hello");
+								}
+							}
+						}else if(outCommand.get("command").toString().equals("FETCH")){
+							try {
+								String message = bufferedreader.readLine();
+								System.out.println(message);
+
+								if (commandLine.debug(args, options)) {
+									logger.fine("RECEIVED:" + message);
+								}
+							} catch (EOFException e) {
+
+							}
+							String resource = bufferedreader.readLine();
+							System.out.println(resource);
+							if (commandLine.debug(args, options)) {
+								logger.fine("RECEIVED:" + resource);
+							}
+
+							JSONObject jsonResource = (JSONObject) parser.parse(resource);
+							if (jsonResource.containsKey("resultSize"))
+								return;
+							File clientfile = new File("clientfile");
+
+							if (!clientfile.isDirectory()) {
+
+								clientfile.mkdir();
+
+							}
+							String fileName = "clientfile/";
+							if (jsonResource.get("name").toString().equals("")) {
+								fileName += "nonamefile";
+							} else {
+								fileName += jsonResource.get("name").toString();
+							}
+							long fileSizeRemaining = Long.parseLong(jsonResource.get("resourceSize").toString());
+							RandomAccessFile downloadingFile = new RandomAccessFile(fileName, "rw");
+
+							int chunkSize = setChunkSize(fileSizeRemaining);
+							byte[] receiveBuffer = new byte[chunkSize];
+							int num;
+
+							System.out.println("Downloading " + fileName + " of size " + fileSizeRemaining);
+							try {
+								while ((num = inputstream.read(receiveBuffer)) > 0) {//may cause bug
+									downloadingFile.write(Arrays.copyOf(receiveBuffer, num));
+
+									fileSizeRemaining -= num;
+
+									chunkSize = setChunkSize(fileSizeRemaining);
+									receiveBuffer = new byte[chunkSize];
+
+									if (fileSizeRemaining == 0) {
+										break;
+									}
+								}
+							} catch (EOFException e) {
+
+							}
+							downloadingFile.close();
+
+							String resultSize = bufferedreader.readLine();
+							System.out.println(resultSize);
+							if (commandLine.debug(args, options)) {
+								logger.fine("RECEIVED:" + resultSize);
+							}
+						}
+						else {
+							
+							Thread interaction = new Thread(() -> {
+								try {
+									SSLinputWaiting(bufferedwriter,bufferedreader,sslsocket);
+								} catch (URISyntaxException e1) {
+									// TODO Auto-generated catch block
+									e1.printStackTrace();
+								} catch (IOException e1) {
+									// TODO Auto-generated catch block
+									e1.printStackTrace();
+								}
+							});
+							interaction.start();
+							
+							
+							String message=null;
+							while ((message = bufferedreader.readLine()) != null){
+
+									
+										System.out.println(message);
+
+										if (commandLine.debug(args, options)) {
+											logger.fine("RECEIVED:" + message);
+										}
+									 
+								}
+							}
+					}
+					
+
+				catch (UnknownHostException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		else{
+
 		try (Socket socket = new Socket(host, port)) {
 			DataInputStream input = new DataInputStream(socket.getInputStream());
 			DataOutputStream output = new DataOutputStream(socket.getOutputStream());
@@ -70,12 +228,13 @@ public class Client {
 				logger.info("setting debug on");
 				logger.fine("SENT:" + outCommand);
 			}
-			
+	
 			if (!outCommand.isEmpty()) {
+
 				if (!outCommand.get("command").toString().equals("FETCH") && !outCommand.get("command").toString().equals("SUBSCRIBE")) {
+
 					while (true) {
 						if (input.available() > 0) {
-
 							try {
 								String message = input.readUTF();
 								System.out.println(message);
@@ -171,7 +330,7 @@ public class Client {
 						}
 					});
 					interaction.start();
-					
+
 					while (true) {
 						if (input.available() > 0) {
 
@@ -198,7 +357,7 @@ public class Client {
 		} catch (IOException e) {
 			return;
 		}
-
+		}
 	}
 
 		
@@ -228,6 +387,30 @@ public class Client {
 			}
 		}
 	}
+	public static void SSLinputWaiting(BufferedWriter bufferedwriter,BufferedReader bufferedreader,SSLSocket sslsocket) throws URISyntaxException, IOException{
+		Scanner scanner = new Scanner(System.in);
+		String[] inputString = scanner.nextLine().split(" ");
+		
+		JSONObject outCommand = commandLine.parse(inputString, options);
+		String out = outCommand.toString();
+		System.out.println(out);
+		bufferedwriter.write(out);
+		
+		String message=null;
+		while ((message = bufferedreader.readLine()) != null){
+
+				try {
+					System.out.println(message);
+
+					
+					sslsocket.close();
+					return;
+					
+				} catch (EOFException e) {
+					
+				}
+			}
+		}
 	public static int setChunkSize(long fileSizeRemaining) {
 		int chunkSize = 1024 * 1024;
 		if (fileSizeRemaining < chunkSize) {

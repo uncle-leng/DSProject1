@@ -22,6 +22,7 @@ public class CommandLineHandle {
 		options.addOption("owner", true, "owner");
 		options.addOption("port", true, "server port, an integer");
 		options.addOption("publish", false, "publish resource on server");
+		
 		options.addOption("query", false, "query for resources from server");
 		options.addOption("remove", false, "remove resource from server");
 		options.addOption("secret", true, "secret");
@@ -61,6 +62,9 @@ public class CommandLineHandle {
 			}
 			if (line.hasOption("port")) {
 				Client.setPort(Integer.parseInt(line.getOptionValue("port")));
+			}
+			if(line.hasOption("secure")){
+				Client.setSecure();
 			}
 			if (line.hasOption("publish") || line.hasOption("remove") || line.hasOption("share")) {
 				if (line.hasOption("publish")) {
