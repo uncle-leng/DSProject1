@@ -370,14 +370,15 @@ public class Client {
 		
 	public static void inputWaiting(DataOutputStream output,DataInputStream input,Socket socket) throws URISyntaxException, IOException{
 		Scanner scanner = new Scanner(System.in);
-		String[] inputString = scanner.nextLine().split(" ");
+		String inputString = scanner.nextLine();
 		
-		JSONObject outCommand = commandLine.parse(inputString, options);
-		String out = outCommand.toString();
-		System.out.println(out);
-		output.writeUTF(out);
+		//JSONObject outCommand = commandLine.parse(inputString, options);
+		//String out = outCommand.toString();
+		//System.out.println(out);
+		output.writeUTF(" ");
 		
 		while (true) {
+			//System.out.println("ssssssss");
 			if (input.available() > 0) {
 
 				try {

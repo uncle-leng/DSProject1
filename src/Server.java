@@ -209,14 +209,17 @@ public class Server {
 						resultStr += result.toJSONString() + "\n";
 					}
 				}
-				output.writeUTF(resultStr.substring(0, resultStr.length() - 2));
+				output.writeUTF(resultStr.trim());
 
 				if (success) {
 					subscribeFlag.put(id, false);
 					if (inputObj.containsKey("relay") && inputObj.get("relay").toString().equals("false")) {
 						while (true) {
+							
 							if (input.available() > 0) {
+								//System.out.println("sssssssssss");
 								String inputUTFSubscribe = input.readUTF();
+								//System.out.println(inputUTFSubscribe);
 								// System.out.println(inputUTFSubscribe);
 								// JSONObject responseObjSubscribe = new
 								// JSONObject();
